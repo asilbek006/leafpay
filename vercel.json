@@ -1,0 +1,8 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/citizen.html", "destination": "/citizen.html" },
+    { "source": "/demo.html", "destination": "/demo.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
