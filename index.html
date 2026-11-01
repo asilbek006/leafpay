@@ -17,6 +17,74 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Anti-Inspect & DevTools Defense (F12, Ctrl+Shift+I, Right-Click, Debugger Trap) -->
+    <script>
+      (function() {
+        // 1. Disable Right-Click Context Menu (Inspect element prevention)
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          return false;
+        }, { capture: true });
+
+        // 2. Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U, Ctrl+S
+        document.addEventListener('keydown', function(e) {
+          // F12 key
+          if (e.key === 'F12' || e.keyCode === 123) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+          // Ctrl + Shift + I / J / C (DevTools & Console on Windows/Linux)
+          // Cmd + Option + I / J / C (on Mac)
+          if ((e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey) && (
+            e.key === 'I' || e.key === 'i' || e.keyCode === 73 ||
+            e.key === 'J' || e.key === 'j' || e.keyCode === 74 ||
+            e.key === 'C' || e.key === 'c' || e.keyCode === 67
+          )) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+          // Ctrl + U (View Source Code)
+          if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+          // Ctrl + S (Save Page)
+          if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        }, { capture: true });
+
+        // 3. Clear and mute console output
+        try {
+          if (window.console) {
+            const noop = function() {};
+            window.console.log = noop;
+            window.console.info = noop;
+            window.console.warn = noop;
+            window.console.error = noop;
+            window.console.debug = noop;
+            window.console.dir = noop;
+            window.console.table = noop;
+            window.console.clear();
+          }
+        } catch (err) {}
+
+        // 4. Anti-Debugger Trap: Traps unauthorized DevTools in infinite debugger loop
+        setInterval(function() {
+          (function() {
+            try {
+              Function("debugger")();
+            } catch(e) {}
+          })();
+        }, 200);
+      })();
+    </script>
   </head>
   <body class="selection:bg-emerald-400 selection:text-slate-900 min-h-screen">
     <div id="root"></div>

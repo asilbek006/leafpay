@@ -36,3 +36,4 @@ thumbs.db
 # Temporary & scratch files
 .temp/
 .cache/
+.vercel
