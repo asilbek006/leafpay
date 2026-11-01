@@ -193,6 +193,9 @@ export default function App() {
             t={t} 
             theme={theme}
             isMobile={isMobileView}
+            user={user}
+            onUpdateCoins={handleUpdateCoins}
+            lang={lang}
           />
         )}
       </>
