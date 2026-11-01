@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LeafPay - Yashil amal evaziga raqamli imtiyoz</title>
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Permissions-Policy" content="camera=(self), geolocation=(self), microphone=()">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+<style>
+:root {
+  --g: #10B981;
+  --g-dark: #059669;
+  --g-grad: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --gl: #EBFBF3;
+  --bg: #F4FAF6;
+  --card: #FFFFFF;
+  --card-sub: #F8FCFA;
+  --tx: #0D2619;
+  --mu: #5E7A6B;
+  --bd: #DCEEE3;
+  --bt: #FFFFFF;
+  --bad: #EF4444;
+  --warn: #F59E0B;
+  --blue: #3B82F6;
+  --gold: #F59E0B;
+  --shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+  --shadow-lg: 0 10px 30px rgba(16, 185, 129, 0.15);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --g: #34D399;
+  --g-dark: #10B981;
+  --g-grad: linear-gradient(135deg, #064E3B 0%, #065F46 100%);
+  --gl: #0B291D;
+  --bg: #09140E;
+  --card: #112419;
+  --card-sub: #162E21;
+  --tx: #EEFBF4;
+  --mu: #809E8F;
+  --bd: #1B3828;
+  --bt: #041B10;
+  --bad: #F87171;
+  --warn: #FBBF24;
+  --blue: #60A5FA;
+  --gold: #FBBF24;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) {
+    --g: #34D399;
+    --g-dark: #10B981;
+    --g-grad: linear-gradient(135deg, #064E3B 0%, #065F46 100%);
+    --gl: #0B291D;
+    --bg: #09140E;
+    --card: #112419;
+    --card-sub: #162E21;
+    --tx: #EEFBF4;
+    --mu: #809E8F;
+    --bd: #1B3828;
+    --bt: #041B10;
+    --bad: #F87171;
+    --warn: #FBBF24;
+    --blue: #60A5FA;
+    --gold: #FBBF24;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+body {
+  background: #E2ECE5;
+  color: var(--tx);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 0;
+}
+
+#device-wrapper {
+  width: 100%;
+  max-width: 420px;
+  min-height: 870px;
+  background: var(--bg);
+  border-radius: 46px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.22), 0 0 0 10px #1E293B, 0 0 0 12px #0F172A;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+@media(max-width: 480px){
+  body { padding: 0; background: var(--bg); }
+  #device-wrapper {
+    max-width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Status Bar & Dynamic Island */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 22px 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tx);
+  user-select: none;
+  position: relative;
+  z-index: 10;
+}
+.sb-time { font-size: 14px; font-weight: 700; width: 54px; }
+.dynamic-island {
+  width: 90px;
+  height: 25px;
+  background: #000;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+.di-cam {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #111;
+  border: 1px solid #222;
+}
+.sb-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 54px;
+  justify-content: flex-end;
+}
+.sb-icons svg { width: 16px; height: 16px; fill: currentColor; }
+
+#app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+main {
+  padding: 12px 18px 100px;
+  flex: 1;
+}
+
+/* Common Components */
+h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+h2 { font-size: 16px; font-weight: 700; margin: 18px 0 10px; display: flex; justify-content: space-between; align-items: center; }
+.mu { color: var(--mu); font-size: 13px; }
+.row { display: flex; align-items: center; gap: 8px; }
+.sp { justify-content: space-between; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  transition: transform .15s ease;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--g-grad);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  transition: opacity .15s, transform .1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn.sec {
+  background: var(--gl);
+  color: var(--g-dark);
+  box-shadow: none;
+  border: 1px solid var(--bd);
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--gl);
+  color: var(--g-dark);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--bd);
+}
+
+/* User Header */
+.user-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.u-left { display: flex; align-items: center; gap: 10px; }
+.u-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gl);
+  border: 2px solid var(--g);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  overflow: hidden;
+}
+.u-name { font-size: 16px; font-weight: 800; }
+.u-sub { font-size: 12px; color: var(--mu); }
+.u-actions { display: flex; gap: 6px; align-items: center; }
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--tx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  font-size: 16px;
+}
+.badge-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bad);
+  border: 1px solid var(--card);
+}
+
+/* Hero Balance Card */
+.hero-card {
+  background: var(--g-grad);
+  color: #fff;
+  border-radius: 24px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+  cursor: pointer;
+}
+.hero-card .h-tag {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: .92;
+  margin-bottom: 8px;
+}
+.hero-card .h-bal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.hero-card .h-bal .coin-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FBBF24;
+  color: #78350F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.hero-card .h-arr {
+  margin-left: 6px;
+  font-size: 18px;
+  opacity: .7;
+}
+.hero-card .h-sprout {
+  position: absolute;
+  right: 6px;
+  bottom: -4px;
+  width: 140px;
+  height: 105px;
+  pointer-events: none;
+}
+
+/* 3 Quick Action Cards */
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.q-card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 20px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: var(--shadow);
+}
+.q-card:active { transform: scale(0.96); }
+.q-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+.q-card.c-green .q-icon { background: #D1FAE5; color: #059669; }
+.q-card.c-blue .q-icon { background: #DBEAFE; color: #2563EB; }
+.q-card.c-red .q-icon { background: #FEE2E2; color: #DC2626; }
+.q-label { font-size: 12px; font-weight: 700; line-height: 1.25; }
+
+/* My Impact Card */
+.impact-card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 20px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.impact-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.impact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.imp-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--card-sub);
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+}
+.imp-col .e { font-size: 18px; }
+.imp-col b { font-size: 16px; font-weight: 800; display: block; }
+.imp-col span { font-size: 11px; color: var(--mu); }
+
+/* Daily Task & Strike Card */
+.task-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.03));
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.task-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #D1FAE5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex: none;
+}
+.task-info { flex: 1; }
+.task-info b { font-size: 14px; display: block; margin-bottom: 2px; }
+.task-info p { font-size: 12px; color: var(--mu); }
+.strike-bar {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  margin-top: 6px;
+  overflow: hidden;
+}
+.strike-bar i { display: block; height: 100%; border-radius: 4px; background: var(--g); }
+
+/* Partners Row */
+.partners-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.partner-card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.p-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.p-metro { background: #DBEAFE; color: #1D4ED8; font-weight: 800; font-size: 18px; }
+.p-korzinka { background: #FEE2E2; color: #DC2626; }
+.p-cafe { background: #FEF3C7; color: #B45309; }
+.p-name { font-size: 11px; font-weight: 700; }
+.p-coin { font-size: 10px; color: var(--mu); }
+
+/* Motivation Banner */
+.moti-banner {
+  background: var(--g-grad);
+  color: #fff;
+  border-radius: 20px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.moti-banner span { font-size: 20px; }
+.moti-banner b { font-size: 13px; flex: 1; }
+.moti-banner i { font-style: normal; opacity: .8; font-size: 14px; }
+
+/* Bottom Nav */
+nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--bd);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 8px 18px;
+  z-index: 20;
+}
+nav button {
+  background: none;
+  border: 0;
+  color: var(--mu);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  flex: 1;
+}
+nav button.on { color: var(--g); font-weight: 800; }
+nav svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+nav button.plus {
+  background: var(--g-grad);
+  color: #fff;
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  margin-top: -24px;
+  font-size: 28px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45);
+}
+
+/* Action Screen */
+.action-big-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 2px solid var(--bd);
+  border-radius: 20px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: all .15s;
+}
+.action-big-card.on {
+  border-color: var(--g);
+  background: var(--gl);
+}
+.abc-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: var(--card-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex: none;
+}
+.abc-content { flex: 1; }
+.abc-content b { font-size: 15px; display: block; margin-bottom: 3px; }
+.abc-content p { font-size: 12px; color: var(--mu); }
+.abc-reward {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--g-dark);
+  background: rgba(16, 185, 129, 0.15);
+  padding: 4px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.photo-preview {
+  height: 220px;
+  border-radius: 20px;
+  background: var(--gl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  overflow: hidden;
+  margin: 12px 0;
+  border: 2px dashed var(--g);
+  position: relative;
+}
+.photo-preview img, .photo-preview video { width: 100%; height: 100%; object-fit: cover; }
+
+/* Login Screen (Mockup 1 Match) */
+.login-header-art {
+  height: 240px;
+  background: linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 60%, var(--bg) 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px 24px;
+  overflow: hidden;
+}
+.login-header-art svg.skyline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 180px;
+  opacity: .95;
+}
+.login-header-art .lang-float {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  display: flex;
+  gap: 4px;
+  z-index: 5;
+}
+.login-header-art .lang-float button {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--bd);
+  color: var(--tx);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.login-header-art .lang-float button.on {
+  background: var(--g);
+  color: #fff;
+  border-color: var(--g);
+}
+.login-brand {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 4px;
+}
+.login-brand .logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 32px;
+  font-weight: 900;
+  color: #065F46;
+  letter-spacing: -0.5px;
+}
+.login-brand p {
+  font-size: 13px;
+  color: #047857;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1.5px solid var(--bd);
+  border-radius: 16px;
+  padding: 0 14px;
+  margin-bottom: 12px;
+  transition: border-color .15s;
+}
+.input-group:focus-within { border-color: var(--g); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+.input-group.bad-f { border-color: var(--bad); }
+.input-group .i-icon { font-size: 18px; opacity: .7; }
+.input-group input, .input-group select {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 14px 0;
+  font-size: 15px;
+  color: var(--tx);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--mu);
+  font-size: 13px;
+  margin: 14px 0;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--bd);
+}
+.divider:not(:empty)::before { margin-right: .8em; }
+.divider:not(:empty)::after { margin-left: .8em; }
+
+.terms-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--mu);
+  margin-top: 14px;
+  cursor: pointer;
+}
+
+/* Modals */
+.modal-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  padding: 16px;
+}
+.modal-box {
+  background: var(--card);
+  color: var(--tx);
+  border: 1px solid var(--bd);
+  border-radius: 26px;
+  padding: 22px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #064E3B;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  z-index: 90;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  text-align: center;
+  max-width: 85%;
+}
+
+#lmap { height: 280px; border-radius: 20px; border: 1px solid var(--bd); z-index: 1; }
+
+/* ===== LeafPay v4: yangi dizayn (rasm asosida) ===== */
+* { font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+:root {
+  --g:#16A34A; --g-dark:#15803D;
+  --g-grad:linear-gradient(135deg,#34C759 0%,#16A34A 55%,#0F7A38 100%);
+  --gl:#E7F7EC; --bg:#F3FAF4; --card:rgba(255,255,255,.88); --card-sub:rgba(244,251,246,.9);
+  --tx:#10281B; --mu:#5F7B6B; --bd:rgba(22,163,74,.14);
+  --shadow:0 6px 22px rgba(22,101,52,.09); --shadow-lg:0 16px 40px rgba(22,101,52,.18);
+}
+:root[data-theme="dark"] {
+  --g:#3DDC84; --g-dark:#22C55E;
+  --g-grad:linear-gradient(135deg,#1E8F4E 0%,#14653A 60%,#0C3D25 100%);
+  --gl:rgba(61,220,132,.10); --bg:#071A12; --card:rgba(18,50,36,.82); --card-sub:rgba(22,60,43,.85);
+  --tx:#EAF8F0; --mu:#8FB4A0; --bd:rgba(61,220,132,.16);
+  --shadow:0 6px 22px rgba(0,0,0,.35); --shadow-lg:0 16px 40px rgba(0,0,0,.55);
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) {
+    --g:#3DDC84; --g-dark:#22C55E;
+    --g-grad:linear-gradient(135deg,#1E8F4E 0%,#14653A 60%,#0C3D25 100%);
+    --gl:rgba(61,220,132,.10); --bg:#071A12; --card:rgba(18,50,36,.82); --card-sub:rgba(22,60,43,.85);
+    --tx:#EAF8F0; --mu:#8FB4A0; --bd:rgba(61,220,132,.16);
+    --shadow:0 6px 22px rgba(0,0,0,.35); --shadow-lg:0 16px 40px rgba(0,0,0,.55);
+  }
+}
+body { background:radial-gradient(1200px 600px at 20% 0%,#CFEAFB 0%,transparent 60%),linear-gradient(180deg,#D9EEF7 0%,#CBE8D2 55%,#B7DEC0 100%); }
+:root[data-theme="dark"] body { background:radial-gradient(900px 500px at 70% 0%,#0F3A27 0%,transparent 60%),#04100A; }
+@media(prefers-color-scheme:dark){ :root:not([data-theme="light"]) body { background:radial-gradient(900px 500px at 70% 0%,#0F3A27 0%,transparent 60%),#04100A; } }
+
+/* Telefon korpusi + fon: osmon va yashil bargli yorug'lik */
+#device-wrapper {
+  background:
+    radial-gradient(260px 200px at 100% 0%,rgba(110,200,120,.30),transparent 70%),
+    radial-gradient(240px 220px at 0% 38%,rgba(255,255,255,.75),transparent 70%),
+    radial-gradient(300px 240px at 100% 100%,rgba(70,170,100,.22),transparent 70%),
+    linear-gradient(180deg,#E3F3FB 0%,#EEF8F0 38%,#F4FAF5 100%);
+  box-shadow:0 30px 80px rgba(10,60,30,.28),0 0 0 9px #14261C,0 0 0 11px #0A1610;
+}
+:root[data-theme="dark"] #device-wrapper {
+  background:
+    radial-gradient(280px 220px at 100% 0%,rgba(61,220,132,.16),transparent 70%),
+    radial-gradient(260px 240px at 0% 100%,rgba(30,143,78,.22),transparent 70%),
+    linear-gradient(180deg,#0A2217 0%,#071A12 100%);
+}
+@media(prefers-color-scheme:dark){ :root:not([data-theme="light"]) #device-wrapper {
+  background:
+    radial-gradient(280px 220px at 100% 0%,rgba(61,220,132,.16),transparent 70%),
+    radial-gradient(260px 240px at 0% 100%,rgba(30,143,78,.22),transparent 70%),
+    linear-gradient(180deg,#0A2217 0%,#071A12 100%); } }
+@media(max-width:480px){ body{ background:var(--bg); } }
+
+/* Shisha (glass) kartalar */
+.card,.q-card,.impact-card,.partner-card,.action-big-card,.input-group,.icon-btn,.modal-box {
+  backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border:1px solid var(--bd); border-radius:22px;
+}
+.icon-btn { border-radius:50%; }
+.u-avatar { border:2.5px solid var(--g); box-shadow:0 0 0 4px rgba(61,220,132,.14); }
+.u-name { font-size:17px; }
+.badge-dot { background:#F97316; width:8px; height:8px; }
+
+/* Asosiy yashil karta */
+.hero-card {
+  border-radius:26px; padding:20px 22px;
+  background:
+    radial-gradient(180px 120px at 85% 100%,rgba(190,255,150,.45),transparent 70%),
+    radial-gradient(160px 100px at 10% 0%,rgba(255,255,255,.22),transparent 70%),
+    var(--g-grad);
+  box-shadow:0 14px 30px rgba(22,163,74,.35), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.hero-card .h-bal { font-size:40px; font-weight:800; }
+.hero-card .h-bal .coin-badge {
+  width:42px; height:42px; background:radial-gradient(circle at 35% 30%,#FFE27A,#F5A623 70%);
+  box-shadow:0 5px 14px rgba(245,166,35,.55), inset 0 -3px 5px rgba(160,90,0,.35);
+}
+
+/* Tezkor amallar: rangli plitkalar */
+.quick-grid { gap:12px; }
+.q-card { padding:16px 8px 14px; }
+.q-icon { width:50px; height:50px; border-radius:16px; font-size:24px; }
+.q-card.c-green .q-icon { background:linear-gradient(135deg,#D9F7DF,#B6EBC3); }
+.q-card.c-blue  .q-icon { background:linear-gradient(135deg,#DDEBFF,#BCD6FF); }
+.q-card.c-red   .q-icon { background:linear-gradient(135deg,#FFE9D2,#FFCFA0); }
+:root[data-theme="dark"] .q-card.c-green .q-icon { background:rgba(61,220,132,.18); box-shadow:0 0 18px rgba(61,220,132,.25); }
+:root[data-theme="dark"] .q-card.c-blue  .q-icon { background:rgba(96,165,250,.18); box-shadow:0 0 18px rgba(96,165,250,.22); }
+:root[data-theme="dark"] .q-card.c-red   .q-icon { background:rgba(249,115,22,.20); box-shadow:0 0 18px rgba(249,115,22,.25); }
+
+/* Ta'sirim */
+.imp-col { background:transparent; border:0; flex-direction:column; gap:2px; text-align:center; padding:2px; }
+.imp-col > div { display:flex; flex-direction:column; align-items:center; }
+.imp-col b { font-size:20px; }
+
+/* Bugungi vazifa */
+.task-card {
+  background:linear-gradient(120deg,rgba(190,240,200,.65),rgba(236,250,238,.8));
+  border:1px solid rgba(22,163,74,.22); border-radius:22px;
+}
+:root[data-theme="dark"] .task-card { background:linear-gradient(120deg,rgba(30,143,78,.45),rgba(14,60,38,.7)); border-color:rgba(61,220,132,.28); }
+@media(prefers-color-scheme:dark){ :root:not([data-theme="light"]) .task-card { background:linear-gradient(120deg,rgba(30,143,78,.45),rgba(14,60,38,.7)); border-color:rgba(61,220,132,.28); } }
+.task-icon { width:48px; height:48px; border-radius:16px; background:rgba(255,255,255,.6); }
+
+/* Hamkorlar */
+.partner-card { padding:14px 8px 12px; border-radius:20px; }
+.p-icon { width:46px; height:46px; border-radius:14px; }
+.p-metro { background:#fff; color:#1E5BD8; }
+.p-korzinka { background:#FFE3E1; }
+.p-cafe { background:#FFF0D2; }
+.p-coin { color:var(--g-dark); font-weight:700; }
+
+/* Motivatsiya banneri */
+.moti-banner { border-radius:22px; padding:16px 18px; background:radial-gradient(180px 90px at 100% 0%,rgba(190,255,150,.35),transparent 70%),var(--g-grad); box-shadow:0 12px 26px rgba(22,163,74,.32); }
+.moti-banner b { font-size:15px; }
+
+/* Pastki menyu: suzuvchi shisha panel */
+nav {
+  left:10px; right:10px; bottom:10px; border:1px solid var(--bd); border-radius:28px;
+  background:var(--card); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 10px 30px rgba(10,60,30,.16); padding:10px 6px 12px;
+}
+nav button.on { color:var(--g-dark); }
+:root[data-theme="dark"] nav button.on { color:var(--g); }
+nav button.plus { width:56px; height:56px; margin-top:-30px; box-shadow:0 10px 24px rgba(22,163,74,.5), 0 0 0 5px rgba(255,255,255,.55); }
+:root[data-theme="dark"] nav button.plus { box-shadow:0 10px 24px rgba(61,220,132,.35), 0 0 0 5px rgba(7,26,18,.9); }
+main { padding-bottom:120px; }
+
+/* Tugmalar */
+.btn { border-radius:18px; padding:15px; box-shadow:0 8px 20px rgba(22,163,74,.32), inset 0 1px 0 rgba(255,255,255,.25); }
+.btn.sec { background:var(--card); color:var(--tx); border:1.5px solid var(--bd); }
+
+/* Kirish ekrani */
+.login-header-art { background:linear-gradient(180deg,#CFE9F8 0%,#DDF1E2 65%,transparent 100%); }
+.login-brand .logo-row { font-size:36px; color:#0F5F34; }
+:root[data-theme="dark"] .login-brand .logo-row { color:#EAF8F0; }
+.login-header-art .lang-float button { background:rgba(255,255,255,.7); backdrop-filter:blur(8px); border-radius:10px; }
+.login-header-art .lang-float button.on { background:var(--g-grad); }
+.input-group { background:rgba(255,255,255,.92); min-height:54px; }
+:root[data-theme="dark"] .input-group { background:rgba(18,50,36,.85); }
+
+/* Dark rejimda yorqin matn va yumshoq yorug'lik */
+:root[data-theme="dark"] .hero-card { box-shadow:0 14px 34px rgba(30,143,78,.35), inset 0 1px 0 rgba(255,255,255,.18); }
+:root[data-theme="dark"] .p-metro { background:#E8F0FF; }
+@media(prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+
+/* ===== Jonli fon: barglar, quyosh, kulgich chiroqlar ===== */
+#bg-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;container-type:size;--lf:#4DBB74;--lf2:#9BE0A8}
+#device-wrapper.is-dark #bg-fx{--lf:#1F8F55;--lf2:#3DDC84}
+#app{z-index:1}
+#bg-fx svg{width:100%;height:100%;fill:currentColor;display:block}
+#bg-fx .sun{position:absolute;top:-90px;left:-70px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,244,190,.85),rgba(255,244,190,0) 68%);animation:sunp 7s ease-in-out infinite}
+#device-wrapper.is-dark #bg-fx .sun{background:radial-gradient(circle,rgba(61,220,132,.25),transparent 68%)}
+@keyframes sunp{50%{transform:scale(1.15);opacity:.75}}
+#bg-fx .fol{position:absolute;width:190px;height:190px;color:var(--lf);opacity:.42}
+#bg-fx .fol svg{position:absolute;width:84px;height:84px}
+#bg-fx .f1{top:-34px;right:-40px;transform-origin:100% 0;animation:sway 6s ease-in-out infinite}
+#bg-fx .f2{bottom:60px;left:-62px;transform-origin:0 100%;animation:sway 7.5s ease-in-out infinite reverse}
+#bg-fx .fol svg:nth-child(1){left:20px;top:30px;transform:rotate(200deg)}
+#bg-fx .fol svg:nth-child(2){left:70px;top:70px;width:100px;height:100px;transform:rotate(250deg);color:var(--lf2)}
+#bg-fx .fol svg:nth-child(3){left:0;top:90px;width:70px;height:70px;transform:rotate(160deg)}
+@keyframes sway{0%,100%{rotate:-3deg}50%{rotate:4deg}}
+#bg-fx .lf{position:absolute;top:0;left:var(--x);width:var(--s);height:var(--s);color:var(--lf);opacity:0;animation:lfall var(--d) linear var(--t) infinite}
+#bg-fx .lf:nth-of-type(3n){color:var(--lf2)}
+@keyframes lfall{0%{transform:translate3d(0,-10cqh,0) rotate(0);opacity:0}10%{opacity:var(--o)}
+ 30%{transform:translate3d(28px,28cqh,0) rotate(90deg)}60%{transform:translate3d(-24px,60cqh,0) rotate(200deg)}
+ 90%{opacity:var(--o)}100%{transform:translate3d(18px,112cqh,0) rotate(330deg);opacity:0}}
+#bg-fx .fly{display:none;position:absolute;left:var(--x);top:var(--y);width:5px;height:5px;border-radius:50%;background:#B8FFD3;box-shadow:0 0 10px 3px rgba(120,255,170,.6);animation:fly var(--d) ease-in-out var(--t) infinite}
+#device-wrapper.is-dark #bg-fx .fly{display:block}
+@keyframes fly{0%,100%{transform:translate(0,0);opacity:.1}50%{transform:translate(22px,-30px);opacity:1}}
+.pill.on{background:var(--g-grad);color:#fff;border-color:transparent}
+.login-header-art{background:linear-gradient(180deg,rgba(207,233,248,.6) 0%,rgba(221,241,226,.4) 65%,transparent 100%)}
+@media(prefers-reduced-motion:reduce){#bg-fx *{animation:none!important}#bg-fx .lf{display:none}}
+
+/* ===== v6: orqaga tugmasi, profil, qorong'i kirish ekrani ===== */
+.back-btn{display:inline-flex;align-items:center;gap:4px;margin:0 0 12px;padding:8px 14px 8px 8px;border-radius:999px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.back-btn:active{transform:scale(.96)}
+.card h2{justify-content:center}
+.card .mu{text-align:center}
+.pill[onclick="logout()"]{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.35);color:var(--bad);padding:7px 12px;font-size:12px}
+.login-header-art{-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent)}
+#device-wrapper.is-dark .login-header-art{background:linear-gradient(180deg,rgba(61,220,132,.10),rgba(7,26,18,0) 100%)}
+#device-wrapper.is-dark svg.skyline{opacity:.5;filter:brightness(2.4) saturate(1.3)}
+#device-wrapper.is-dark .login-brand .logo-row{color:#EAF8F0}
+#device-wrapper.is-dark .login-brand p{color:#7EE8A8}
+#device-wrapper.is-dark .login-header-art .lang-float button{background:rgba(255,255,255,.08);color:var(--tx);border-color:var(--bd)}
+#device-wrapper.is-dark .login-header-art .lang-float button.on{background:var(--g-grad);color:#fff;border-color:transparent}
+#device-wrapper.is-dark .input-group{background:rgba(18,50,36,.85)}
+#device-wrapper.is-dark .p-metro{background:#E8F0FF}
+#device-wrapper.is-dark nav button.on{color:var(--g)}
+#device-wrapper.is-dark nav button.plus{box-shadow:0 10px 24px rgba(61,220,132,.35),0 0 0 5px rgba(7,26,18,.9)}
+#device-wrapper.is-dark .q-card.c-green .q-icon{background:rgba(61,220,132,.18);box-shadow:0 0 18px rgba(61,220,132,.25)}
+#device-wrapper.is-dark .q-card.c-blue .q-icon{background:rgba(96,165,250,.18);box-shadow:0 0 18px rgba(96,165,250,.22)}
+#device-wrapper.is-dark .q-card.c-red .q-icon{background:rgba(249,115,22,.20);box-shadow:0 0 18px rgba(249,115,22,.25)}
+
+/* ===== v7: yangi kirish rasmi va tema tugmalari ===== */
+.login-header-art{height:340px;padding:16px 24px 128px;justify-content:flex-end}
+.login-header-art svg.skyline{height:auto;aspect-ratio:380/200;bottom:0;opacity:1;filter:none}
+.sk-far{fill:#CDEBD6}.sk-city rect{fill:#A5D6BE}.sk-tower *{fill:#6FBB9C}.sk-near{fill:#92D6A7}.sk-tree circle{fill:#5CBF7E}
+#device-wrapper.is-dark svg.skyline{opacity:1;filter:none}
+#device-wrapper.is-dark .sk-far{fill:#12392A}#device-wrapper.is-dark .sk-city rect{fill:#1B5640}#device-wrapper.is-dark .sk-tower *{fill:#2F8F66}
+#device-wrapper.is-dark .sk-near{fill:#16543A}#device-wrapper.is-dark .sk-tree circle{fill:#27965C}
+.login-brand{text-align:center;margin-bottom:0}
+.login-brand .logo-row{flex-direction:column;gap:2px;font-size:40px;justify-content:center}
+.login-brand .logo-row svg{width:66px;height:66px;filter:drop-shadow(0 6px 10px rgba(22,163,74,.35))}
+.login-brand p{font-size:14px;margin-top:4px}
+.login-header-art .lang-float .sep{width:8px}
+.login-header-art .lang-float button.th{padding:4px 7px;font-size:13px}
+#device-wrapper.is-dark .login-header-art .lang-float button.th.on{background:rgba(61,220,132,.28);border-color:var(--g)}
+.login-header-art .lang-float button.th.on{background:rgba(22,163,74,.18);border-color:var(--g);color:inherit}
+
+/* v9: soxta status panel (9:41, kamera, signal) olib tashlandi */
+main{padding-top:20px}
+.toast{top:18px}
+.login-header-art .lang-float{top:16px}
+</style>
+</head>
+<body>
+
+<div id="device-wrapper">
+  <div id="app"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+var LANGS=['uz','ru','en'];
+var T={
+  tag:['Yashil amal evaziga raqamli imtiyoz','Цифровые бонусы за зелёные дела','Digital rewards for green actions'],
+  name:['Ism va familiya','Имя и фамилия','Full name'],
+  phone:['90 123 45 67','90 123 45 67','90 123 45 67'],
+  dist:['Yashash hududingiz','Ваш район','Your district'],
+  reg:['Ro‘yxatdan o‘tish','Зарегистрироваться','Sign up'],
+  oneId:['OneID orqali kirish','Войти через OneID','Log in with OneID'],
+  or:['yoki','или','or'],
+  agree:['Ro‘yxatdan o‘tib, ilova qoidalari bilan roziman.','Регистрируясь, соглашаюсь с правилами.','By signing up I agree to the terms.'],
+  hi:['Salom,','Привет,','Hello,'],
+  myCoins:['Mening Eco-Coin\'im','Мой Eco-Coin','My Eco-Coins'],
+  a1Title:['Ko‘chat ekish','Посадка саженца','Plant a tree'],
+  a1Sub:['Rasmga oling va joylashuvni tasdiqlang. +10 Eco-Coin','Сфотографируйте и подтвердите геопозицию. +10 Eco-Coin','Take a photo & confirm location. +10 Eco-Coin'],
+  a2Title:['Hududni tozalash','Уборка территории','Clean an area'],
+  a2Sub:['Toza muhit uchun hissa qo‘shing. +10 Eco-Coin','Внесите вклад в чистую среду. +10 Eco-Coin','Contribute to a clean environment. +10 Eco-Coin'],
+  a3Title:['Qonunbuzarlik haqida xabar','Сообщить о нарушении','Report violation'],
+  a3Sub:['Havoga zarar yetkazuvchi holatlarni bildiring. +5 Eco-Coin','Сообщите о вреде экологии. +5 Eco-Coin','Report environmental harm. +5 Eco-Coin'],
+  impact:['Mening ta’sirim','Мой вклад','My impact'],
+  trees:['Ko‘chat','Саженцы','Trees'],
+  clean:['Tozalash','Уборка','Cleanup'],
+  rep:['Xabar','Сообщение','Reports'],
+  taskTitle:['Bugungi vazifa','Задание на сегодня','Today\'s task'],
+  taskSub:['Bugun 1 ta ko‘chat ekib, +10 Eco-Coin oling!','Посадите 1 саженец сегодня и получите +10 Eco-Coin!','Plant 1 sapling today and get +10 Eco-Coins!'],
+  streakBadge:['kunlik Strike','дней страйк','days streak'],
+  streakDemoBtn:['⚡ +1 kun','⚡ +1 день','⚡ +1 day'],
+  streak50DemoBtn:['🚀 50 kun (1000 coin)','🚀 50 дней (1000 коинов)','🚀 50 days (1000 coins)'],
+  partners:['Hamkorlarimiz','Наши партнёры','Our partners'],
+  seeAll:['Barchasini ko‘rish >','Смотреть все >','See all >'],
+  moti:['Kichik amallar, katta o‘zgarishlar!','Маленькие дела ведут к большим переменам!','Small actions lead to big changes!'],
+  nHome:['Bosh sahifa','Главная','Home'],
+  nMap:['Xarita','Карта','Map'],
+  nRew:['Mukofotlar','Награды','Rewards'],
+  nProf:['Profil','Профиль','Profile'],
+  exchangeTitle:['Eco-Coin\'larni mukofotlarga almashtiring','Обменяйте Eco-Coin на награды','Exchange Eco-Coins for rewards'],
+  camOpen:['📷 Kamerani ochish','📷 Открыть камеру','📷 Open camera'],
+  snapPhoto:['⚪ Rasmga olish','⚪ Сделать снимок','⚪ Take photo'],
+  gallery:['Galereya','Галерея','Gallery'],
+  retake:['Qayta olish','Переснять','Retake'],
+  gpsLoc:['Joylashuv (GPS)','Геолокация (GPS)','Location (GPS)'],
+  detect:['Aniqlash','Определить','Detect'],
+  sendAct:['Yuborish','Отправить','Submit'],
+  notePlh:['Izoh (ixtiyoriy)...','Комментарий (необязательно)...','Comment (optional)...'],
+  r1:['Toshkent Metro','Ташкентское метро','Tashkent Metro'],
+  r1Sub:['1 kunlik metroda bepul yurish','1 день бесплатного проезда','1 day free metro pass'],
+  r2:['Korzinka supermarketi','Супермаркет Korzinka','Korzinka supermarket'],
+  r2Sub:['Xarid uchun 20,000 so‘m vaucher','Ваучер на покупки 20,000 сум','20,000 UZS shopping voucher'],
+  r3:['Kafe va restoranlar','Кафе и рестораны','Café & restaurants'],
+  r3Sub:['Hamkor kafeda kofe yoki desert −20%','Скидка −20% на кофе или десерт','−20% discount on coffee or dessert'],
+  r4:['O‘quv markazi kursiga chegirma','Курсы в учебном центре','Training center course'],
+  r4Sub:['Dasturlash yoki til kursiga −10%','Скидка −10% на курсы','−10% discount on courses'],
+  r5:['1 haftalik bepul transport (Metro + Avtobus)','1 неделя бесплатного транспорта (Метро + Автобус)','1 week free public transport (Metro + Bus)'],
+  r5Sub:['50 kunlik Strike maxsus chiptasi','Спецбилет за 50 дней страйка','Special 50-day streak pass']
+};
+
+var DISTR=[['Yunusobod','Юнусабад','Yunusabad',41.364,69.287],['Chilonzor','Чиланзар','Chilanzar',41.275,69.204],['Mirzo Ulug‘bek','Мирзо-Улугбек','Mirzo Ulugbek',41.338,69.334],['Yakkasaroy','Яккасарай','Yakkasaray',41.293,69.26],['Shayxontohur','Шайхантахур','Shaykhantakhur',41.322,69.23]];
+var ACTIONS=[
+  {id:'t', tKey:'a1Title', sKey:'a1Sub', e:'🌿', c:10, co2:21},
+  {id:'c', tKey:'a2Title', sKey:'a2Sub', e:'🗑️', c:10, co2:5},
+  {id:'r', tKey:'a3Title', sKey:'a3Sub', e:'⚠️', c:5, co2:0}
+];
+var REW=[
+  {id:1, name:'r1', sub:'r1Sub', c:10, icon:'🚇', color:'p-metro', brand:'Toshkent Metro'},
+  {id:2, name:'r2', sub:'r2Sub', c:20, icon:'🛒', color:'p-korzinka', brand:'Korzinka'},
+  {id:3, name:'r3', sub:'r3Sub', c:15, icon:'☕', color:'p-cafe', brand:'Kafe'},
+  {id:4, name:'r4', sub:'r4Sub', c:60, icon:'📚', color:'p-metro', brand:'O‘quv markazi'},
+  {id:5, name:'r5', sub:'r5Sub', c:1000, icon:'🎫', color:'p-cafe', brand:'Haftalik transport'}
+];
+
+/* Yangi foydalanuvchiga beriladigan boshlang'ich bonus */
+var WELCOME_BONUS = 50;
+var S = {
+  lang: 0,
+  user: null,
+  f: {name: '', phone: '', d: 0},
+  err: '',
+  tab: 'home',
+  theme: 'auto',
+  coins: WELCOME_BONUS,
+  co2: 42,
+  trees: 12,
+  clean: 3,
+  reports: 2,
+  streak: {count: 12, lastDate: new Date().toISOString().slice(0,10), bonus50: false},
+  act: 0,
+  photo: null,
+  cam: false,
+  stream: null,
+  gps: null,
+  locState: 'idle',
+  acc: null,
+  me: {lat: 41.364, lng: 69.287},
+  real: false,
+  stage: 0,
+  note: '',
+  res: null,
+  lm: null,
+  pts: []
+};
+
+function t(k){ return T[k] ? T[k][S.lang] : k; }
+
+try {
+  var th = localStorage.getItem('lp_theme');
+  if(th === 'light' || th === 'dark') S.theme = th;
+  var sv = localStorage.getItem('lp_user');
+  if(sv) S.user = JSON.parse(sv);
+  var sl = localStorage.getItem('lp_lang');
+  if(sl) S.lang = +sl || 0;
+  var st = localStorage.getItem('lp_streak');
+  if(st) S.streak = JSON.parse(st);
+  localStorage.removeItem('lp_gemini_key');
+} catch(e){}
+
+applyTheme();
+if(S.user) locate();
+
+function isDark(){
+  var a = document.documentElement.getAttribute('data-theme');
+  if(a) return a === 'dark';
+  return !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function applyTheme(){
+  if(S.theme === 'light' || S.theme === 'dark') document.documentElement.setAttribute('data-theme', S.theme);
+  else document.documentElement.removeAttribute('data-theme');
+}
+function toggleTheme(){
+  S.theme = isDark() ? 'light' : 'dark';
+  try { localStorage.setItem('lp_theme', S.theme); } catch(e){}
+  applyTheme();
+  render();
+}
+function setLang(i){
+  S.lang = i;
+  try { localStorage.setItem('lp_lang', i); } catch(e){}
+  render();
+}
+function toast(m){
+  var d = document.createElement('div');
+  d.className = 'toast';
+  d.textContent = m;
+  document.getElementById('device-wrapper').appendChild(d);
+  setTimeout(function(){ d.remove(); }, 2400);
+}
+
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function locate(){
+  var d = DISTR[S.user.d || 0];
+  S.me = {lat: d[3], lng: d[4]};
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(p){
+      S.me = {lat: p.coords.latitude, lng: p.coords.longitude};
+      S.acc = Math.round(p.coords.accuracy || 0);
+      S.real = true;
+      S.locState = 'ok';
+    }, function(){}, {enableHighAccuracy: true, timeout: 8000});
+  }
+}
+
+function go(tab){
+  stopCam();
+  killMap();
+  S.tab = tab;
+  if(tab === 'rec'){
+    S.stage = 0;
+    S.photo = null;
+    S.note = '';
+    S.res = null;
+    if(S.real && S.me) S.gps = {lat: S.me.lat, lng: S.me.lng, real: true, acc: S.acc};
+    else S.gps = {lat: S.me.lat, lng: S.me.lng, real: false, acc: 25};
+  }
+  render();
+  window.scrollTo(0, 0);
+}
+
+function stopCam(){
+  if(S.stream){
+    S.stream.getTracks().forEach(function(x){ x.stop(); });
+    S.stream = null;
+  }
+  S.cam = false;
+}
+
+function openCam(){
+  var f = document.getElementById('fi');
+  var touch = window.matchMedia && matchMedia('(pointer:coarse)').matches;
+  /* Telefonda: kamera ilovasi bevosita ochiladi (bosish paytida, shuning uchun bloklanmaydi) */
+  if(touch || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ if(f) f.click(); return; }
+  /* Kompyuterda: jonli kamera ko'rinishi */
+  navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false}).then(function(st){
+    S.stream = st; S.cam = true; render();
+  }).catch(function(){
+    toast('📷 Kamera ochilmadi. Brauzerda kameraga ruxsat bering.');
+    if(f) f.click();
+  });
+}
+
+function snap(){
+  var v = document.getElementById('vid');
+  if(!v || !v.videoWidth) return;
+  var c = document.createElement('canvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v, 0, 0);
+  S.photo = c.toDataURL('image/jpeg', 0.8);
+  stopCam();
+  render();
+}
+
+function onFile(e){
+  var f = e.target.files && e.target.files[0];
+  if(!f) return;
+  var r = new FileReader();
+  r.onload = function(){
+    S.photo = r.result;
+    render();
+  };
+  r.readAsDataURL(f);
+}
+
+function cleanPh(v){
+  var d = String(v).replace(/\D/g,'');
+  if(d.indexOf('998') === 0 && d.length > 9) d = d.slice(3);
+  return d.slice(0, 9);
+}
+function fmtPh(d){
+  d = String(d).slice(0, 9);
+  return [d.slice(0,2), d.slice(2,5), d.slice(5,7), d.slice(7,9)].filter(Boolean).join(' ');
+}
+
+function register(){
+  var name = (S.f.name||'').trim();
+  var ph = S.f.phone;
+  if(name.length < 2){
+    S.err = 'name'; render(); return;
+  }
+  if(ph.length !== 9){
+    S.err = 'phone'; render(); return;
+  }
+  S.err = '';
+  S.user = { name: name, phone: '+998' + ph, d: S.f.d };
+  try { localStorage.setItem('lp_user', JSON.stringify(S.user)); } catch(e){}
+  S.coins = WELCOME_BONUS;
+  locate();
+  render();
+  toast('🎁 Xush kelibsiz! +' + WELCOME_BONUS + ' Eco-Coin bonus berildi.');
+}
+
+function oneIdLogin(){
+  S.user = { name: 'Aziza Rahimova', phone: '+998901234567', d: 0, oneId: true };
+  try { localStorage.setItem('lp_user', JSON.stringify(S.user)); } catch(e){}
+  S.coins = WELCOME_BONUS;
+  locate();
+  render();
+  toast('✅ OneID orqali muvaffaqiyatli kirildi!');
+}
+
+function backBtn(){
+  return '<button class="back-btn" onclick="goBack()" aria-label="Orqaga"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span>Orqaga</span></button>';
+}
+function askConfirm(msg, yes){
+  var w = document.getElementById('device-wrapper'), o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.innerHTML = '<div class="modal-box" style="text-align:center"><div style="font-size:34px;margin-bottom:6px">🚪</div>' +
+    '<b style="font-size:16px;display:block;margin-bottom:16px">' + msg + '</b>' +
+    '<div class="row"><button class="btn sec" id="cn">Bekor qilish</button><button class="btn" id="cy">Ha, chiqish</button></div></div>';
+  w.appendChild(o);
+  o.querySelector('#cn').onclick = function(){ o.remove(); };
+  o.querySelector('#cy').onclick = function(){ o.remove(); yes(); };
+}
+function logout(){
+  askConfirm('Tizimdan chiqishni xohlaysizmi?', function(){
+    S.user = null; S.tab = 'home';
+    try { localStorage.removeItem('lp_user'); } catch(e){}
+    render();
+  });
+}
+
+/* Streak Logic */
+function checkStreakBonus(){
+  if(S.streak.count >= 50 && !S.streak.bonus50){
+    S.streak.bonus50 = true;
+    S.coins += 1000;
+    toast('🎉 50 kunlik Strike! +1000 Eco-Coin mukofot berildi!');
+    saveStreak();
+  }
+}
+function saveStreak(){
+  try { localStorage.setItem('lp_streak', JSON.stringify(S.streak)); } catch(e){}
+}
+function incStreak(){
+  var today = new Date().toISOString().slice(0, 10);
+  if(!S.streak) S.streak = {count: 0, lastDate: '', bonus50: false};
+  if(S.streak.lastDate !== today){
+    S.streak.count++;
+    S.streak.lastDate = today;
+    checkStreakBonus();
+    saveStreak();
+  }
+}
+function demoAddStreak(val){
+  if(!S.streak) S.streak = {count: 0, lastDate: '', bonus50: false};
+  if(val === 50) S.streak.count = 50;
+  else S.streak.count++;
+  S.streak.lastDate = new Date().toISOString().slice(0, 10);
+  checkStreakBonus();
+  saveStreak();
+  render();
+  toast('🔥 Strike: ' + S.streak.count + ' kun' + (val === 50 ? ' (+1000 coin!)' : ''));
+}
+
+function ensureJpegBase64(dataUri, cb){
+  if(!dataUri) return cb(null, null);
+  if(dataUri.indexOf('data:image/jpeg;base64,') === 0) return cb('image/jpeg', dataUri.split(';base64,')[1]);
+  if(dataUri.indexOf('data:image/png;base64,') === 0) return cb('image/png', dataUri.split(';base64,')[1]);
+  var img = new Image();
+  img.onload = function(){
+    try {
+      var cv = document.createElement('canvas');
+      cv.width = img.width || 300; cv.height = img.height || 200;
+      var ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0);
+      var j = cv.toDataURL('image/jpeg', 0.85);
+      cb('image/jpeg', j.split(';base64,')[1]);
+    } catch(e){ cb('image/jpeg', ''); }
+  };
+  img.onerror = function(){ cb('image/jpeg', ''); };
+  img.src = dataUri;
+}
+
+/* ===== Server bilan aloqa =====
+   Rasm va ma'lumotlar SIZNING serveringizga yuboriladi (kalitlar faqat serverda saqlanadi).
+   verifyUrl bo'sh bo'lsa, ilova demo rejimda ishlaydi. Masalan: verifyUrl: '/api/verify' */
+var LP_API = { verifyUrl: '' };
+
+function prepPhoto(dataUri, cb){
+  if(!dataUri) return cb(null, null);
+  var img = new Image();
+  img.onload = function(){
+    try {
+      var k = Math.min(1, 1280 / Math.max(img.width, img.height));
+      var cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      var ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      cb('image/jpeg', cv.toDataURL('image/jpeg', 0.82).split(';base64,')[1]);
+    } catch(e){ ensureJpegBase64(dataUri, cb); }
+  };
+  img.onerror = function(){ ensureJpegBase64(dataUri, cb); };
+  img.src = dataUri;
+}
+
+function callVerifyApi(base64Data, mimeType, cb){
+  var act = ACTIONS[S.act], d = DISTR[S.user ? (S.user.d || 0) : 0];
+  fetch(LP_API.verifyUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      image: base64Data, mime: mimeType, action: S.act, actionKey: act.tKey, note: S.note || '',
+      gps: S.gps ? {lat: S.gps.lat, lng: S.gps.lng, acc: S.gps.acc, real: !!S.gps.real} : null,
+      user: S.user ? {name: S.user.name, phone: S.user.phone, district: d[0]} : null,
+      lang: LANGS[S.lang], ts: new Date().toISOString()
+    })
+  })
+  .then(function(res){ if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+  .then(function(r){ cb(null, r); })
+  .catch(function(e){ cb(e, null); });
+}
+
+function submitAction(){
+  S.stage = 1; S.res = null; render();
+  if(!LP_API.verifyUrl){ runDemoAnalysis(); return; }
+  prepPhoto(S.photo, function(mimeType, base64Data){
+    if(!base64Data){ runDemoAnalysis(); return; }
+    setTimeout(function(){ if(S.stage === 1){ S.stage = 2; render(); } }, 600);
+    callVerifyApi(base64Data, mimeType, function(err, r){
+      if(err || !r){ S.stage = 0; render(); toast('⚠️ Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.'); return; }
+      S.stage = 3; render();
+      setTimeout(function(){
+        S.stage = 4; render();
+        setTimeout(function(){
+          var act = ACTIONS[S.act];
+          S.res = {
+            valid: !!r.valid,
+            coins: r.valid ? (r.coins || act.c) : 0,
+            trustScore: r.trustScore || (r.valid ? 92 : 20),
+            summary: r.summary || '',
+            reason: r.reason || 'Rad etildi'
+          };
+          S.stage = 5;
+          if(r.valid){
+            S.coins += S.res.coins;
+            if(S.act === 0) S.trees++;
+            else if(S.act === 1) S.clean++;
+            else if(S.act === 2) S.reports++;
+            incStreak();
+          }
+          render();
+        }, 700);
+      }, 600);
+    });
+  });
+}
+
+function runDemoAnalysis(){
+  var act = ACTIONS[S.act];
+  setTimeout(function(){ S.stage = 2; render(); }, 800);
+  setTimeout(function(){ S.stage = 3; render(); }, 1600);
+  setTimeout(function(){ S.stage = 4; render(); }, 2400);
+  setTimeout(function(){
+    S.stage = 5;
+    S.res = {
+      valid: true,
+      coins: act.c,
+      trustScore: 94,
+      summary: 'Yangi ekilgan ko‘chat va atrofidagi tuproq aniqlandi. Tasdiqlandi!',
+      reason: ''
+    };
+    S.coins += act.c;
+    if(S.act === 0) S.trees++;
+    else if(S.act === 1) S.clean++;
+    else if(S.act === 2) S.reports++;
+    incStreak();
+    render();
+  }, 3200);
+}
+
+function buyReward(idx){
+  var r = REW[idx];
+  if(S.coins < r.c){
+    toast('Ballaringiz yetarli emas');
+    return;
+  }
+  S.coins -= r.c;
+  render();
+  toast('🎉 ' + t(r.name) + ' kuponi olindi! -' + r.c + ' Eco-Coin');
+}
+
+/* Visual SVG graphics */
+function sproutSvg(){
+  return '<svg class="h-sprout" viewBox="0 0 140 105" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M10 98 C30 75 110 75 130 98 C135 102 5 102 10 98 Z" fill="#3D2817"/>' +
+    '<path d="M25 94 C45 80 95 80 115 94 Z" fill="#5A3E26"/>' +
+    '<path d="M70 85 Q70 55 72 38" stroke="#34D399" stroke-width="5" stroke-linecap="round"/>' +
+    '<path d="M72 40 C65 25 42 22 45 42 C48 52 68 45 72 40 Z" fill="#10B981"/>' +
+    '<path d="M72 38 C80 20 102 20 98 38 C94 48 76 43 72 38 Z" fill="#34D399"/>' +
+    '<path d="M71 45 C73 40 85 36 88 44 C88 50 75 48 71 45 Z" fill="#6EE7B7"/>' +
+    '</svg>';
+}
+
+function skylineSvg(){
+  return '<svg class="skyline" preserveAspectRatio="xMidYMax slice" viewBox="0 0 380 200" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path class="sk-far" d="M0 150C60 118 120 142 190 128S320 118 380 140V200H0Z"/>' +
+    '<g class="sk-city"><rect x="12" y="122" width="22" height="50" rx="2"/><rect x="38" y="104" width="26" height="68" rx="2"/><rect x="68" y="132" width="20" height="40" rx="2"/><rect x="94" y="142" width="18" height="30" rx="2"/>' +
+    '<rect x="196" y="146" width="22" height="26" rx="2"/><rect x="222" y="134" width="20" height="38" rx="2"/><rect x="346" y="116" width="24" height="56" rx="2"/><rect x="262" y="140" width="18" height="32" rx="2"/></g>' +
+    '<g class="sk-tower"><rect x="320" y="26" width="4" height="140"/><path d="M308 170L322 84L336 170Z"/><ellipse cx="322" cy="66" rx="15" ry="6"/><ellipse cx="322" cy="75" rx="9" ry="4"/><rect x="321.2" y="6" width="1.6" height="22"/></g>' +
+    '<path class="sk-near" d="M0 178C70 152 140 172 210 162S330 152 380 168V200H0Z"/>' +
+    '<g class="sk-tree"><circle cx="38" cy="166" r="7"/><circle cx="62" cy="162" r="6"/><circle cx="288" cy="160" r="6"/><circle cx="352" cy="160" r="7"/></g>' +
+  '</svg>';
+}
+
+function leafLogoSvg(){
+  return '<svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M21 38C21 38 7 32 7 19C7 10 16 4 23 4C30 4 35 11 35 19C35 32 21 38 21 38Z" fill="#10B981"/>' +
+    '<path d="M23 4C23 4 35 11 35 19C35 32 21 38 21 38C21 38 24 24 18 16C13 10 23 4 23 4Z" fill="#34D399"/>' +
+    '<path d="M14 26C18 24 23 18 24 11" stroke="#ECFDF5" stroke-width="2" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
+/* Screen Renderers */
+function setTheme(m){
+  S.theme = m;
+  try { localStorage.setItem('lp_theme', m); } catch(e){}
+  applyTheme(); render();
+}
+function themeBtns(){
+  var d = isDark();
+  return '<button class="th ' + (d?'':'on') + '" onclick="setTheme(\'light\')" aria-label="Light">☀️</button>' +
+         '<button class="th ' + (d?'on':'') + '" onclick="setTheme(\'dark\')" aria-label="Dark">🌙</button>';
+}
+function renderLogin(){
+  var f = S.f;
+  return '<div class="login-header-art">' +
+    skylineSvg() +
+    '<div class="lang-float">' +
+      LANGS.map(function(l,i){
+        return '<button class="' + (S.lang===i?'on':'') + '" onclick="setLang(' + i + ')">' + l.toUpperCase() + '</button>';
+      }).join('') +
+    '<span class="sep"></span>' + themeBtns() +
+    '</div>' +
+    '<div class="login-brand">' +
+      '<div class="logo-row">' + leafLogoSvg() + '<span>LeafPay</span></div>' +
+      '<p>' + t('tag') + '</p>' +
+    '</div>' +
+  '</div>' +
+  '<div style="padding: 18px 22px 30px">' +
+    '<div class="input-group ' + (S.err==='name'?'bad-f':'') + '">' +
+      '<span class="i-icon">👤</span>' +
+      '<input id="fn" placeholder="' + t('name') + '" value="' + esc(f.name) + '" oninput="S.f.name=this.value;if(S.err===\'name\'){S.err=\'\';this.parentNode.classList.remove(\'bad-f\')}">' +
+    '</div>' +
+    '<div class="input-group ' + (S.err==='phone'?'bad-f':'') + '">' +
+      '<span class="i-icon">🇺🇿 +998</span>' +
+      '<input id="fp" type="tel" placeholder="' + t('phone') + '" value="' + fmtPh(f.phone) + '" oninput="S.f.phone=cleanPh(this.value);this.value=fmtPh(S.f.phone);if(S.err===\'phone\'){S.err=\'\';this.parentNode.classList.remove(\'bad-f\')}">' +
+    '</div>' +
+    '<div class="input-group">' +
+      '<span class="i-icon">📍</span>' +
+      '<select onchange="S.f.d=+this.value">' +
+        DISTR.map(function(d,i){ return '<option value="' + i + '"' + (f.d===i?' selected':'') + '>' + d[S.lang] + '</option>'; }).join('') +
+      '</select>' +
+    '</div>' +
+    '<button class="btn" style="margin-top: 6px" onclick="register()">' + t('reg') + '</button>' +
+    '<label class="terms-row">' +
+      '<input type="checkbox" checked style="accent-color:var(--g);width:16px;height:16px"> ' +
+      '<span>' + t('agree') + '</span>' +
+    '</label>' +
+  '</div>';
+}
+
+function renderHome(){
+  var userName = S.user ? S.user.name.split(' ')[0] : 'Aziza';
+  var st = S.streak || {count: 12, lastDate: '', bonus50: false};
+  var pct = Math.min(100, Math.round((st.count / 50) * 100));
+
+  var h = '<div class="user-bar">' +
+    '<div class="u-left">' +
+      '<div class="u-avatar">' + (S.user && S.user.oneId ? '👩🏻' : '🌿') + '</div>' +
+      '<div>' +
+        '<div class="u-sub">' + t('hi') + '</div>' +
+        '<div class="u-name">' + esc(userName) + '! 👋</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="u-actions">' +
+      '<button class="icon-btn" onclick="toggleTheme()" title="Mavzu">' + (isDark() ? '☀️' : '🌙') + '</button>' +
+      '<button class="icon-btn" onclick="toast(\'🔔 Xush kelibsiz! Bugun ko‘chat ekib +10 coin oling.\')" title="Bildirishnomalar">' +
+        '<span class="badge-dot"></span>🔔' +
+      '</button>' +
+    '</div>' +
+  '</div>';
+
+  /* Hero Balance Card */
+  h += '<div class="hero-card" onclick="go(\'shop\')">' +
+    '<div class="h-tag">' + t('myCoins') + '</div>' +
+    '<div class="h-bal">' +
+      '<div class="coin-badge">🪙</div>' +
+      '<span>' + S.coins + '</span>' +
+      '<span class="h-arr">›</span>' +
+    '</div>' +
+    sproutSvg() +
+  '</div>';
+
+  /* 3 Quick Action Cards */
+  h += '<div class="quick-grid">' +
+    '<div class="q-card c-green" onclick="S.act=0;go(\'rec\')">' +
+      '<div class="q-icon">🌱</div>' +
+      '<div class="q-label">' + t('a1Title') + '</div>' +
+    '</div>' +
+    '<div class="q-card c-blue" onclick="S.act=1;go(\'rec\')">' +
+      '<div class="q-icon">🗑️</div>' +
+      '<div class="q-label">' + t('a2Title') + '</div>' +
+    '</div>' +
+    '<div class="q-card c-red" onclick="S.act=2;go(\'rec\')">' +
+      '<div class="q-icon">⚠️</div>' +
+      '<div class="q-label">' + t('a3Title') + '</div>' +
+    '</div>' +
+  '</div>';
+
+  /* My Impact Card */
+  h += '<div class="impact-card">' +
+    '<div class="impact-title">' + t('impact') + '</div>' +
+    '<div class="impact-grid">' +
+      '<div class="imp-col"><span class="e">🌿</span><div><b>' + S.trees + '</b><span>' + t('trees') + '</span></div></div>' +
+      '<div class="imp-col"><span class="e">🗑️</span><div><b>' + S.clean + '</b><span>' + t('clean') + '</span></div></div>' +
+      '<div class="imp-col"><span class="e">⚠️</span><div><b>' + S.reports + '</b><span>' + t('rep') + '</span></div></div>' +
+    '</div>' +
+  '</div>';
+
+  /* Daily Task & Strike Card */
+  h += '<div class="task-card" onclick="S.act=0;go(\'rec\')">' +
+    '<div class="task-icon">🌱</div>' +
+    '<div class="task-info">' +
+      '<b>' + t('taskTitle') + '</b>' +
+      '<p>' + t('taskSub') + '</p>' +
+      '<div class="row sp" style="margin-top:6px;font-size:11px">' +
+        '<span style="font-weight:700;color:var(--g-dark)">🔥 ' + st.count + ' / 50 ' + t('streakBadge') + '</span>' +
+        '<span class="mu">50 kunga: 1000 coin</span>' +
+      '</div>' +
+      '<div class="strike-bar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="row" style="margin-top:8px;gap:6px" onclick="event.stopPropagation()">' +
+        '<button class="pill" style="cursor:pointer;font-size:10px;padding:3px 8px" onclick="demoAddStreak(1)">' + t('streakDemoBtn') + '</button>' +
+        '<button class="pill" style="cursor:pointer;font-size:10px;padding:3px 8px;color:var(--warn)" onclick="demoAddStreak(50)">' + t('streak50DemoBtn') + '</button>' +
+      '</div>' +
+    '</div>' +
+    '<span style="font-size:18px;color:var(--mu)">›</span>' +
+  '</div>';
+
+  /* Partners Preview */
+  h += '<h2><span>' + t('partners') + '</span><span style="font-size:12px;color:var(--g);cursor:pointer;font-weight:700" onclick="go(\'shop\')">' + t('seeAll') + '</span></h2>' +
+    '<div class="partners-grid">' +
+      '<div class="partner-card" onclick="go(\'shop\')"><div class="p-icon p-metro">M</div><div class="p-name">Toshkent Metro</div><div class="p-coin">10 Eco-Coin ›</div></div>' +
+      '<div class="partner-card" onclick="go(\'shop\')"><div class="p-icon p-korzinka">🛒</div><div class="p-name">Korzinka</div><div class="p-coin">20 Eco-Coin ›</div></div>' +
+      '<div class="partner-card" onclick="go(\'shop\')"><div class="p-icon p-cafe">☕</div><div class="p-name">Kafe</div><div class="p-coin">15 Eco-Coin ›</div></div>' +
+    '</div>';
+
+  /* Motivation Banner */
+  h += '<div class="moti-banner" onclick="toast(\'🌿 Birgalikda tabiatni asraymiz!\')">' +
+    '<span>🍃</span>' +
+    '<b>' + t('moti') + '</b>' +
+    '<i>❯</i>' +
+  '</div>';
+
+  return h;
+}
+
+function renderRec(){
+  var act = ACTIONS[S.act];
+  var h = '<input id="fi" type="file" accept="image/*" capture="environment" hidden onchange="onFile(event)">';
+
+  if(S.stage === 0){
+    h += '<div class="row sp" style="margin-bottom:12px">' +
+      '<h1>' + t('a' + (S.act+1) + 'Title') + '</h1>' +
+    '</div>';
+
+    /* Action Picker */
+    h += ACTIONS.map(function(x, i){
+      return '<div class="action-big-card ' + (i===S.act?'on':'') + '" onclick="S.act=' + i + ';render()">' +
+        '<div class="abc-img">' + x.e + '</div>' +
+        '<div class="abc-content">' +
+          '<b>' + t(x.tKey) + '</b>' +
+          '<p>' + t(x.sKey) + '</p>' +
+        '</div>' +
+        '<div class="abc-reward">+' + x.c + ' Coin</div>' +
+      '</div>';
+    }).join('');
+
+    /* Photo Preview & Capture */
+    var ph = S.cam ? '<video id="vid" autoplay playsinline muted></video>' : (S.photo ? '<img src="' + S.photo + '" alt="">' : '📷');
+    h += '<div class="photo-preview">' + ph + '</div>';
+
+    if(S.cam){
+      h += '<button class="btn" onclick="snap()">' + t('snapPhoto') + '</button>';
+    } else {
+      h += '<button class="btn sec" onclick="openCam()">' + (S.photo ? t('retake') : t('camOpen')) + '</button>';
+    }
+
+    /* GPS Info */
+    h += '<div class="card" style="margin-top:12px;padding:12px 14px">' +
+      '<div class="row sp">' +
+        '<span style="font-size:13px;font-weight:600">📍 ' + t('gpsLoc') + '</span>' +
+        (S.gps ? '<span class="pill">✅ ' + S.gps.lat.toFixed(4) + ', ' + S.gps.lng.toFixed(4) + (S.gps.acc ? ' ±' + S.gps.acc + 'm' : '') + '</span>' : '<button class="pill" onclick="locate()">Aniqlash</button>') +
+      '</div>' +
+    '</div>';
+
+    /* Note and Submit */
+    h += '<input placeholder="' + t('notePlh') + '" value="' + esc(S.note) + '" oninput="S.note=this.value" style="width:100%;border:1.5px solid var(--bd);border-radius:16px;padding:12px;margin:10px 0;background:var(--card);color:var(--tx)">' +
+      '<button class="btn" ' + (S.photo ? '' : 'disabled') + ' onclick="submitAction()">' + t('sendAct') + '</button>';
+
+  } else if(S.stage < 5){
+    var stMsg = ['GPS koordinata tekshirilmoqda...', 'AI: rasm sinchkovlik bilan tahlil qilinmoqda...', 'Takroriy rasm tekshiruvi...', 'Ishonch balli hisoblanmoqda...'][S.stage - 1] || 'Tekshirilmoqda...';
+    h += '<h1 style="text-align:center;margin-top:20px">Tekshirilmoqda...</h1>' +
+      '<div class="photo-preview" style="margin-top:16px"><img src="' + S.photo + '"></div>' +
+      '<div class="card" style="text-align:center;padding:20px">' +
+        '<div style="font-size:32px;margin-bottom:8px">⏳</div>' +
+        '<b>' + stMsg + '</b>' +
+        '<div class="strike-bar" style="margin-top:14px"><i style="width:' + (S.stage * 25) + '%"></i></div>' +
+      '</div>';
+  } else {
+    /* Stage 5: Results */
+    var r = S.res;
+    h += '<div style="text-align:center;margin-top:14px">' +
+      '<div style="font-size:64px">' + (r.valid ? '🎉' : '❌') + '</div>' +
+      '<h1>' + (r.valid ? 'Muvaffaqiyatli tasdiqlandi!' : 'Qabul qilinmadi') + '</h1>' +
+    '</div>';
+
+    if(r.valid){
+      h += '<div class="card" style="text-align:center;margin-top:16px;background:var(--gl);border-color:var(--g)">' +
+        '<div style="font-size:32px;font-weight:900;color:var(--g-dark)">+' + r.coins + ' Eco-Coin</div>' +
+        '<p class="mu" style="margin-top:4px">Hamyoningizga qo‘shildi · Jami: <b>' + S.coins + '</b></p>' +
+      '</div>';
+    } else {
+      h += '<div class="card" style="margin-top:16px;border-color:var(--bad)">' +
+        '<b style="color:var(--bad)">' + esc(r.reason) + '</b>' +
+        '<p class="mu" style="margin-top:6px">Iltimos, haqiqiy ko‘chat yoki tozalash ishlari aks etgan rasm yuboring.</p>' +
+      '</div>';
+    }
+
+    if(r.summary){
+      h += '<div class="card" style="margin-top:10px">' +
+        '<div class="row sp"><b style="color:var(--g)">🤖 AI xulosasi:</b><span class="pill">Real AI</span></div>' +
+        '<p style="margin-top:6px;font-size:13px;line-height:1.4">' + esc(r.summary) + '</p>' +
+      '</div>';
+    }
+
+    h += '<div class="card" style="margin-top:10px">' +
+      '<div class="row sp"><b>Ishonch bali:</b><b>' + r.trustScore + ' / 100</b></div>' +
+      '<div class="strike-bar" style="margin-top:8px"><i style="width:' + r.trustScore + '%;background:' + (r.valid ? 'var(--g)' : 'var(--bad)') + '"></i></div>' +
+    '</div>' +
+    '<button class="btn" style="margin-top:14px" onclick="go(\'home\')">Bosh sahifaga qaytish</button>';
+  }
+
+  return h;
+}
+
+function renderMap(){
+  return '<div class="row sp" style="margin-bottom:8px"><h1>' + t('nMap') + '</h1><span class="pill" style="color:var(--bad)">● JONLI</span></div>' +
+    '<p class="mu" style="margin-bottom:12px">Sizga yaqin hudud (600 m): faolliklar real vaqtda ko‘rsatiladi</p>' +
+    '<div id="lmap"></div>' +
+    '<div class="row" style="margin:12px 0;flex-wrap:wrap">' +
+      '<span class="pill">🌱 8 ta ko‘chat</span>' +
+      '<span class="pill" style="color:var(--bad)">⚠️ 2 ta muammo</span>' +
+      '<span class="pill">🔵 Sizning joyingiz</span>' +
+    '</div>' +
+    '<div class="card">' +
+      '<b>Yaqin atrofdagi yashil nuqtalar:</b>' +
+      '<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span style="font-size:13px">🌱 Yangi chinor ko‘chati</span><b style="font-size:12px">120 m</b></div>' +
+      '<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span style="font-size:13px">🧹 Tozalangan istirohat bog‘i</span><b style="font-size:12px">340 m</b></div>' +
+      '<div class="row sp" style="padding:8px 0"><span style="font-size:13px">🌱 Archa ko‘chatlari guruhi</span><b style="font-size:12px">510 m</b></div>' +
+    '</div>';
+}
+
+function renderShop(){
+  return '<div class="row sp" style="margin-bottom:10px">' +
+    '<h1>' + t('nRew') + '</h1>' +
+    '<span class="pill" style="font-size:13px;font-weight:800">🪙 ' + S.coins + ' Coin</span>' +
+  '</div>' +
+  '<p class="mu" style="margin-bottom:14px">' + t('exchangeTitle') + '</p>' +
+  REW.map(function(r, idx){
+    return '<div class="card" style="display:flex;align-items:center;gap:12px;margin-bottom:10px">' +
+      '<div class="p-icon ' + r.color + '" style="width:48px;height:48px;border-radius:14px;font-size:22px;flex:none">' + r.icon + '</div>' +
+      '<div style="flex:1">' +
+        '<b style="font-size:14px;display:block">' + t(r.name) + '</b>' +
+        '<span class="mu" style="font-size:12px">' + t(r.sub) + '</span>' +
+      '</div>' +
+      '<button class="pill" style="cursor:pointer;background:var(--g-grad);color:#fff;border:0;padding:8px 12px;font-size:12px" onclick="buyReward(' + idx + ')">' + r.c + ' 🪙</button>' +
+    '</div>';
+  }).join('');
+}
+
+function fmtDisp(p){
+  var d=String(p||'').replace(/\D/g,'');
+  if(d.length===12&&d.indexOf('998')===0) return '+998 '+d.slice(3,5)+' '+d.slice(5,8)+' '+d.slice(8,10)+' '+d.slice(10);
+  return esc(p);
+}
+function renderProfile(){
+  return '<div class="row sp" style="margin-bottom:12px"><h1>' + t('nProf') + '</h1><button class="pill" style="cursor:pointer;color:var(--bad)" onclick="logout()">Chiqish 🚪</button></div>' +
+    '<div class="card" style="text-align:center;padding:20px">' +
+      '<div class="u-avatar" style="width:68px;height:68px;margin:0 auto 10px;font-size:32px">' + (S.user && S.user.oneId ? '👩🏻' : '🌿') + '</div>' +
+      '<h2>' + esc(S.user ? S.user.name : 'Aziza Rahimova') + '</h2>' +
+      '<div class="mu">' + fmtDisp(S.user ? S.user.phone : '+998 90 123 45 67') + ' · ' + (DISTR[S.user ? S.user.d : 0][S.lang]) + '</div>' +
+      '<div class="pill" style="margin-top:10px">🟢 Profil tasdiqlangan</div>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>🪙 Eko-hamyon balansi:</span><b>' + S.coins + ' Coin</b></div>' +
+      '<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>🌱 Ekilgan ko‘chatlar:</span><b>' + S.trees + ' ta</b></div>' +
+      '<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>🌫️ Tejalgan CO₂:</span><b>' + S.co2 + ' kg</b></div>' +
+      '<div class="row sp" style="padding:8px 0"><span>🔥 Kunlik Strike:</span><b style="color:var(--warn)">' + S.streak.count + ' kun</b></div>' +
+    '</div>' +
+    '';
+}
+
+function renderNav(){
+  var tabs = [
+    {id:'home', label:'nHome', icon:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
+    {id:'map', label:'nMap', icon:'<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>'},
+    {id:'rec', label:'+', isPlus: true},
+    {id:'shop', label:'nRew', icon:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>'},
+    {id:'profile', label:'nProf', icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'}
+  ];
+
+  return '<nav>' +
+    tabs.map(function(t_tab){
+      if(t_tab.isPlus){
+        return '<button class="plus" onclick="go(\'rec\')" aria-label="+">+</button>';
+      }
+      return '<button class="' + (S.tab===t_tab.id ? 'on' : '') + '" onclick="go(\'' + t_tab.id + '\')">' +
+        '<svg viewBox="0 0 24 24">' + t_tab.icon + '</svg>' +
+        '<span>' + t(t_tab.label) + '</span>' +
+      '</button>';
+    }).join('') +
+  '</nav>';
+}
+
+function killMap(){
+  if(S.lm){
+    try { S.lm.remove(); } catch(e){}
+    S.lm = null;
+  }
+}
+
+function initMap(){
+  var el = document.getElementById('lmap');
+  if(!el || !window.L || !S.me) return;
+  var m = L.map(el).setView([S.me.lat, S.me.lng], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(m);
+  L.circle([S.me.lat, S.me.lng], {radius: 600, color: '#10B981', weight: 1.5, dashArray: '4 6', fillOpacity: 0.05}).addTo(m);
+  L.marker([S.me.lat, S.me.lng]).addTo(m).bindPopup('Sizning joyingiz');
+  L.marker([S.me.lat + 0.0015, S.me.lng + 0.0018]).addTo(m).bindPopup('🌱 Yangi ko‘chat');
+  L.marker([S.me.lat - 0.002, S.me.lng - 0.0015]).addTo(m).bindPopup('🧹 Tozalangan maydon');
+  S.lm = m;
+}
+
+function render(){
+  killMap();
+  var app = document.getElementById('app');
+  if(!S.user){
+    app.innerHTML = renderLogin();
+    return;
+  }
+
+  var v = '';
+  if(S.tab === 'home') v = renderHome();
+  else if(S.tab === 'rec') v = renderRec();
+  else if(S.tab === 'map') v = renderMap();
+  else if(S.tab === 'shop' || S.tab === 'wallet') v = renderShop();
+  else if(S.tab === 'profile') v = renderProfile();
+
+  app.innerHTML = '<main>' + (S.tab!=='home' ? backBtn() : '') + v + '</main>' + renderNav();
+
+  var vd = document.getElementById('vid');
+  if(vd && S.stream){
+    vd.srcObject = S.stream;
+    var p = vd.play();
+    if(p && p.catch) p.catch(function(){});
+  }
+
+  if(S.tab === 'map') setTimeout(initMap, 50);
+}
+
+render();
+</script>
+<script>
+/* ===== Jonli fon ===== */
+(function(){
+  var w=document.getElementById('device-wrapper'),fx=document.createElement('div');fx.id='bg-fx';
+  var L='<svg viewBox="0 0 24 24"><path d="M21 3C11 3 4 8 4 15c0 2 .6 3.6 1.5 5C7 14 11 10 16 8c-4 3-7 7-8.5 12.5C8.6 20.6 10 21 11.5 21 18 21 21 13 21 3z"/></svg>';
+  var r=function(a,b){return a+Math.random()*(b-a)};
+  var h='<i class="sun"></i><b class="fol f1">'+L+L+L+'</b><b class="fol f2">'+L+L+L+'</b>',i;
+  for(i=0;i<14;i++)h+='<s class="lf" style="--x:'+r(0,95).toFixed(0)+'%;--s:'+r(14,30).toFixed(0)+'px;--d:'+r(11,20).toFixed(1)+'s;--t:-'+r(0,18).toFixed(1)+'s;--o:'+r(.35,.7).toFixed(2)+'">'+L+'</s>';
+  for(i=0;i<16;i++)h+='<u class="fly" style="--x:'+r(3,95).toFixed(0)+'%;--y:'+r(8,92).toFixed(0)+'%;--d:'+r(4,9).toFixed(1)+'s;--t:-'+r(0,8).toFixed(1)+'s"></u>';
+  fx.innerHTML=h;w.insertBefore(fx,w.firstChild);
+})();
+
+/* ===== Tarjima qatlami (RU / EN): qattiq yozilgan matnlar uchun ===== */
+var XD=[
+['50 kunga: 1000 coin','50 дней: 1000 монет','50 days: 1000 coins'],
+['Toshkent Metro','Метро Ташкента','Tashkent Metro'],
+['Kafe','Кафе','Cafe'],
+['Aniqlash','Определить','Detect'],
+['● JONLI','● ОНЛАЙН','● LIVE'],
+['Sizga yaqin hudud (600 m): faolliklar real vaqtda ko‘rsatiladi','Рядом с вами (600 м): активность в реальном времени','Near you (600 m): activity in real time'],
+['🌱 8 ta ko‘chat','🌱 8 саженцев','🌱 8 saplings'],
+['⚠️ 2 ta muammo','⚠️ 2 проблемы','⚠️ 2 issues'],
+['🔵 Sizning joyingiz','🔵 Вы здесь','🔵 Your location'],
+['Yaqin atrofdagi yashil nuqtalar:','Зелёные точки рядом:','Green spots nearby:'],
+['🌱 Yangi chinor ko‘chati','🌱 Новый саженец чинара','🌱 New plane-tree sapling'],
+['🧹 Tozalangan istirohat bog‘i','🧹 Убранный парк','🧹 Cleaned park'],
+['🌱 Archa ko‘chatlari guruhi','🌱 Группа саженцев ели','🌱 Group of fir saplings'],
+['🌱 Yangi ko‘chat','🌱 Новый саженец','🌱 New sapling'],
+['🧹 Tozalangan maydon','🧹 Убранная территория','🧹 Cleaned area'],
+['Chiqish 🚪','Выйти 🚪','Log out 🚪'],
+['🟢 OneID orqali tasdiqlangan','🟢 Подтверждено через OneID','🟢 Verified via OneID'],
+['🪙 Eko-hamyon balansi:','🪙 Баланс эко-кошелька:','🪙 Eco-wallet balance:'],
+['🌱 Ekilgan ko‘chatlar:','🌱 Посажено саженцев:','🌱 Saplings planted:'],
+['🌫️ Tejalgan CO₂:','🌫️ Сэкономлено CO₂:','🌫️ CO₂ saved:'],
+['🔥 Kunlik Strike:','🔥 Ежедневная серия:','🔥 Daily streak:'],
+['Ilova sozlamalari:','Настройки приложения:','App settings:'],
+['Mavzuni almashtirish','Сменить тему','Switch theme'],
+['Qorong‘i','Тёмная','Dark'],
+['Yorug‘','Светлая','Light'],
+['(Faol)','(активен)','(active)'],
+['Tilni tanlang:','Выберите язык:','Choose language:'],
+['Yopish','Закрыть','Close'],
+['Muvaffaqiyatli tasdiqlandi!','Успешно подтверждено!','Successfully verified!'],
+['Hamyoningizga qo‘shildi · Jami:','Добавлено в кошелёк · Итого:','Added to wallet · Total:'],
+['Iltimos, haqiqiy ko‘chat yoki tozalash ishlari aks etgan rasm yuboring.','Отправьте реальное фото посадки или уборки.','Please send a real photo of planting or cleanup.'],
+['Yangi ekilgan ko‘chat va atrofidagi tuproq aniqlandi. Tasdiqlandi!','Обнаружен новый саженец и почва вокруг. Подтверждено!','New sapling and soil detected. Verified!'],
+['kuponi olindi!','купон получен!','coupon received!'],
+['Ballaringiz yetarli emas','Недостаточно баллов','Not enough points'],
+['📷 Kamera ochilmadi. Brauzerda kameraga ruxsat bering.','📷 Камера не открылась. Разрешите доступ к камере в браузере.','📷 Camera did not open. Allow camera access in your browser.'],
+['✅ OneID orqali muvaffaqiyatli kirildi!','✅ Вход через OneID выполнен!','✅ Logged in via OneID!'],
+['🎉 50 kunlik Strike! +1000 Eco-Coin mukofot berildi!','🎉 Серия 50 дней! +1000 Eco-Coin','🎉 50-day streak! +1000 Eco-Coin awarded!'],
+['🔔 Xush kelibsiz! Bugun ko‘chat ekib +10 coin oling.','🔔 Добро пожаловать! Посадите саженец сегодня и получите +10 монет.','🔔 Welcome! Plant a sapling today and get +10 coins.'],
+['🌿 Birgalikda tabiatni asraymiz!','🌿 Вместе сохраним природу!','🌿 Together we protect nature!'],
+['Tizimdan chiqishni xohlaysizmi?','Выйти из аккаунта?','Log out of your account?'],
+['Orqaga','Назад','Back'],
+['Bekor qilish','Отмена','Cancel'],
+['Ha, chiqish','Да, выйти','Yes, log out'],
+['🔥 Strike:','🔥 Серия:','🔥 Streak:'],
+['(+1000 coin!)','(+1000 монет!)','(+1000 coins!)'],
+['AI: rasm sinchkovlik bilan tahlil qilinmoqda...','ИИ: фото тщательно анализируется...','AI: analyzing the photo carefully...'],
+['GPS koordinata tekshirilmoqda...','Проверка GPS-координат...','Checking GPS coordinates...'],
+['Takroriy rasm tekshiruvi...','Проверка на дубликаты...','Duplicate photo check...'],
+['Ishonch balli hisoblanmoqda...','Расчёт балла доверия...','Calculating trust score...'],
+['🎁 Xush kelibsiz! +50 Eco-Coin bonus berildi.','🎁 Добро пожаловать! Начислен бонус +50 Eco-Coin.','🎁 Welcome! +50 Eco-Coin bonus added.'],
+['Tekshirilmoqda...','Проверка...','Checking...'],
+['🤖 AI xulosasi:','🤖 Вывод ИИ:','🤖 AI verdict:'],
+['⚠️ Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.','⚠️ Нет связи с сервером. Попробуйте ещё раз.','⚠️ Could not reach the server. Please try again.']
+].sort(function(a,b){return b[0].length-a[0].length});
+function tr(v){
+  if(S.lang===0)return v;var o=v,k=S.lang;
+  XD.forEach(function(e){if(o.indexOf(e[0])>-1)o=o.split(e[0]).join(e[k]);});
+  return o.replace(/(\d+) ta\b/g,k==1?'$1 шт.':'$1 pcs').replace(/(\d+) kun\b/g,k==1?'$1 дн.':'$1 days');
+}
+function tx(n){
+  if(S.lang===0||!n)return;
+  if(n.nodeType===3){var v=tr(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v;return;}
+  if(n.nodeType!==1||n.id==='bg-fx')return;
+  var wk=document.createTreeWalker(n,NodeFilter.SHOW_TEXT,null),a=[],c;
+  while((c=wk.nextNode()))a.push(c);
+  a.forEach(function(t){if(!/^(SCRIPT|STYLE|TEXTAREA)$/.test(t.parentNode.nodeName))tx(t);});
+}
+(function(){
+  var w=document.getElementById('device-wrapper');
+  function sync(){w.classList.toggle('is-dark',isDark());}
+  new MutationObserver(function(ms){
+    sync();
+    ms.forEach(function(m){Array.prototype.forEach.call(m.addedNodes,tx);});
+  }).observe(w,{childList:true,subtree:true});
+  sync();tx(w);
+})();
+</script>
+<script>
+var goBack;
+/* ===== Orqaga: ilova ichida va brauzer "back" bilan ===== */
+(function(){
+  var _go=go, hp=0;
+  go=function(tab){
+    var prev=S.tab;
+    _go(tab);
+    if(prev==='home'&&tab!=='home'){ try{ history.pushState({lp:1},''); hp++; }catch(e){} }
+    else if(tab==='home'&&prev!=='home'&&hp>0){ try{ history.back(); }catch(e){} }
+  };
+  goBack=function(){
+    if(hp>0){ try{ history.back(); return; }catch(e){} }
+    _go('home');
+  };
+  window.addEventListener('popstate',function(){
+    hp=Math.max(0,hp-1);
+    if(S.user&&S.tab!=='home') _go('home');
+  });
+})();
+</script>
+</body>
+</html>
