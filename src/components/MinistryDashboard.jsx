@@ -117,7 +117,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
       rewardCoins: 15,
       image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop',
       status: 'approved',
-      adminNote: 'Admin (A.Davlatov) tomonidan ruxsat berildi'
+      adminNote: 'Admin (R.Arujan) tomonidan ruxsat berildi'
     }
   ];
 
@@ -135,7 +135,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
   // REGIONAL INSPECTORS LIST
   // ==========================================
   const INITIAL_INSPECTORS = [
-    { id: 1, name: 'Asilbek Davlatov', role: 'Bosh davlat inspektori', district: 'Toshkent shahar (Hammasi)', status: 'active', tier: 'SuperAdmin' },
+    { id: 1, name: 'Raximova Arujan', role: 'Bosh davlat inspektori', district: 'Toshkent shahar (Hammasi)', status: 'active', tier: 'SuperAdmin' },
     { id: 2, name: 'Sardor Aliyev', role: 'Katta inspektor', district: 'Chilonzor tumani', status: 'active', tier: 'Inspektor' },
     { id: 3, name: 'Nodira Karimova', role: 'Ekologiya nazoratchisi', district: 'Yunusobod tumani', status: 'active', tier: 'Inspektor' },
     { id: 4, name: 'Jamshid Toshpo‘latov', role: 'Dala inspektori', district: 'Mirzo Ulug‘bek tumani', status: 'inactive', tier: 'Inspektor' },
@@ -167,7 +167,8 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
     setTimeout(() => {
       setIsLoggingIn(false);
       // Valid credentials: login === 'admin' and (password === '2026' or 'admin')
-      if ((adminLogin.trim().toLowerCase() === 'admin' || adminLogin.trim().toLowerCase() === 'asilbek') && 
+      const validLogins = ['admin', 'arujan', 'raximova', 'asilbek'];
+      if (validLogins.includes(adminLogin.trim().toLowerCase()) && 
           (adminPassword.trim() === '2026' || adminPassword.trim() === 'admin' || adminPassword.trim() === 'leafpay2026')) {
         setIsAdminAuth(true);
         try {
@@ -220,7 +221,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
         return {
           ...app,
           status: 'approved',
-          adminNote: `Admin (A.Davlatov) tomonidan ruxsat berildi va +${coins} Eco-Coin o‘tkazildi`
+          adminNote: `Admin (R.Arujan) tomonidan ruxsat berildi va +${coins} Eco-Coin o‘tkazildi`
         };
       }
       return app;
@@ -518,7 +519,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className={`text-base sm:text-lg font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>
-                Admin Ruxsati Faol: Asilbek Davlatov
+                Admin Ruxsati Faol: Raximova Arujan
               </h2>
               <span className="text-[10px] bg-emerald-600 text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1">
                 <Check className="w-3 h-3" />
