@@ -1897,38 +1897,293 @@ var goBack;
   });
 })();
 </script>
-<!-- Anti-Inspect & DevTools Defense (F12, Ctrl+Shift+I, Right-Click, Debugger Trap) -->
+<!-- Red Screen Security Lockdown Overlay & Anti-Inspect Defense -->
+<style>
+  @keyframes leafpayAlertPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+    50% { transform: scale(1.04); box-shadow: 0 0 35px rgba(239, 68, 68, 0.9); }
+  }
+  @keyframes leafpayCardShake {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-6px); }
+    30%, 60%, 90% { transform: translateX(6px); }
+  }
+  .leafpay-shake {
+    animation: leafpayCardShake 0.4s ease-in-out;
+  }
+</style>
+
+<div id="leafpay-security-overlay" style="display: none; position: fixed; inset: 0; z-index: 2147483647; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #dc2626 0%, #991b1b 40%, #450a0a 100%); color: #ffffff; font-family: 'Manrope', system-ui, -apple-system, sans-serif; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; overflow-y: auto; user-select: none;">
+  <div id="leafpay-security-card" style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 2.5px solid #ef4444; border-radius: 28px; padding: 36px 26px; max-width: 580px; width: 100%; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(239, 68, 68, 0.45); text-align: center; position: relative;">
+    
+    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; border-radius: 9999px; background: rgba(239, 68, 68, 0.25); border: 2px solid #ef4444; color: #fecaca; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; animation: leafpayAlertPulse 1.6s infinite;">
+      <span style="font-size: 18px;">⚠️</span>
+      <span>XAVF — TIZIM HIMOYASI VA XAVFSIZLIK CHEKLOVI</span>
+    </div>
+
+    <h1 style="font-size: clamp(22px, 5vw, 32px); font-weight: 900; color: #ffffff; margin: 22px 0 12px 0; line-height: 1.25; text-shadow: 0 4px 20px rgba(0,0,0,0.7);">
+      Seni admin qachon ruxsat bersa o‘sha payt kirasan!
+    </h1>
+
+    <p style="font-size: 13.5px; color: #fca5a5; line-height: 1.6; font-weight: 600; margin: 0 auto 22px auto; max-width: 500px;">
+      Dastur kodini ko‘rish (F12, DevTools yoki kodni tahlil qilish) qat’iyan taqiqlangan! Tizim ruxsatsiz aralashuvni aniqladi va kirishni cheklab qo‘ydi.
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 22px;">
+      <div style="background: rgba(0,0,0,0.5); border: 1.5px solid rgba(239,68,68,0.4); padding: 12px 20px; border-radius: 18px; text-align: center; flex: 1; max-width: 190px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #fca5a5; font-weight: 800;">Qoidabuzarlik</div>
+        <div id="leafpay-violation-count" style="font-size: 24px; font-weight: 900; color: #ffffff; margin-top: 3px;">1 / 3</div>
+      </div>
+      <div style="background: rgba(0,0,0,0.5); border: 1.5px solid rgba(239,68,68,0.4); padding: 12px 20px; border-radius: 18px; text-align: center; flex: 1; max-width: 190px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #fca5a5; font-weight: 800;">Blokirovka vaqti</div>
+        <div id="leafpay-timer-display" style="font-size: 24px; font-weight: 900; color: #fde047; font-family: monospace; margin-top: 3px;">30s</div>
+      </div>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.4); border-radius: 18px; border: 1.5px solid rgba(239,68,68,0.35); padding: 16px 20px; margin-bottom: 22px;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #fecaca; font-size: 13.5px; font-weight: 700;">
+        <span id="leafpay-lock-icon" style="font-size: 17px;">🔒</span>
+        <span id="leafpay-status-msg">Qizil ekrandan chiqish 30 soniyaga to‘liq bloklandi...</span>
+      </div>
+      <div style="width: 100%; height: 9px; background: rgba(255,255,255,0.15); border-radius: 9999px; margin-top: 14px; overflow: hidden;">
+        <div id="leafpay-progress-bar" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b); transition: width 0.9s linear;"></div>
+      </div>
+    </div>
+
+    <div id="leafpay-resume-container" style="display: none; margin-bottom: 14px;">
+      <button id="leafpay-resume-btn" type="button" style="width: 100%; padding: 14px 24px; border-radius: 16px; background: #ffffff; color: #991b1b; font-weight: 900; font-size: 13.5px; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: transform 0.15s ease;">
+        Qoidalarga rioya qilgan holda saytga qaytish
+      </button>
+    </div>
+
+    <div style="margin-top: 18px; font-size: 11.5px; color: rgba(255,255,255,0.65);">
+      <span id="leafpay-admin-toggle-link" style="cursor: pointer; text-decoration: underline;">Admin ruxsati bilan ochish</span>
+      <div id="leafpay-admin-unlock-row" style="display: none; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;">
+        <input id="leafpay-admin-pin-input" type="password" placeholder="Admin PIN (2026)" style="padding: 9px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; outline: none; width: 160px; text-align: center;" />
+        <button id="leafpay-admin-pin-btn" type="button" style="padding: 9px 16px; border-radius: 12px; background: #10b981; color: #fff; border: none; font-size: 12px; font-weight: 800; cursor: pointer;">Tasdiqlash</button>
+      </div>
+      <div id="leafpay-admin-pin-err" style="color: #fca5a5; font-size: 11.5px; margin-top: 6px; display: none;"></div>
+    </div>
+
+  </div>
+</div>
+
 <script>
 (function() {
+  const LOCK_DURATION = 30;
+  const MAX_ATTEMPTS = 3;
+  let countdownTimer = null;
+
+  function getStorageData() {
+    try {
+      const raw = localStorage.getItem('leafpay_sec_lock');
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { attempts: 0, lockedUntil: 0 };
+  }
+
+  function setStorageData(data) {
+    try {
+      localStorage.setItem('leafpay_sec_lock', JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function playAlertSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(420, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch(e) {}
+  }
+
+  function triggerLockdown() {
+    let data = getStorageData();
+    const now = Date.now();
+
+    if (data.lockedUntil && now < data.lockedUntil) {
+      const card = document.getElementById('leafpay-security-card');
+      if (card) {
+        card.classList.remove('leafpay-shake');
+        void card.offsetWidth;
+        card.classList.add('leafpay-shake');
+      }
+      showOverlay(data);
+      return;
+    }
+
+    data.attempts = (data.attempts || 0) + 1;
+    data.lockedUntil = now + (LOCK_DURATION * 1000);
+    setStorageData(data);
+
+    playAlertSound();
+    showOverlay(data);
+  }
+
+  function showOverlay(data) {
+    const overlay = document.getElementById('leafpay-security-overlay');
+    if (!overlay) return;
+
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    const violationEl = document.getElementById('leafpay-violation-count');
+    const timerEl = document.getElementById('leafpay-timer-display');
+    const statusMsg = document.getElementById('leafpay-status-msg');
+    const lockIcon = document.getElementById('leafpay-lock-icon');
+    const progressBar = document.getElementById('leafpay-progress-bar');
+    const resumeContainer = document.getElementById('leafpay-resume-container');
+
+    if (violationEl) {
+      violationEl.textContent = Math.min(data.attempts, MAX_ATTEMPTS) + ' / ' + MAX_ATTEMPTS;
+    }
+
+    if (countdownTimer) clearInterval(countdownTimer);
+
+    function update() {
+      const now = Date.now();
+      const diffMs = (data.lockedUntil || 0) - now;
+      const remainingSec = Math.max(0, Math.ceil(diffMs / 1000));
+
+      if (timerEl) timerEl.textContent = remainingSec + 's';
+
+      if (progressBar) {
+        const pct = Math.max(0, Math.min(100, (remainingSec / LOCK_DURATION) * 100));
+        progressBar.style.width = pct + '%';
+      }
+
+      if (remainingSec > 0) {
+        if (resumeContainer) resumeContainer.style.display = 'none';
+        if (statusMsg) {
+          statusMsg.textContent = 'Qizil ekrandan chiqish ' + remainingSec + ' soniyaga to‘liq bloklandi...';
+        }
+        if (lockIcon) lockIcon.textContent = '🔒';
+      } else {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+
+        if (data.attempts >= MAX_ATTEMPTS) {
+          if (resumeContainer) resumeContainer.style.display = 'none';
+          if (statusMsg) {
+            statusMsg.textContent = '3 marta qoidani buzdingiz! Ruxsat butunlay to‘xtatildi. Seni admin qachon ruxsat bersa o‘sha payt kirasan!';
+          }
+          if (lockIcon) lockIcon.textContent = '⛔';
+          if (timerEl) timerEl.textContent = 'BLOK';
+          if (progressBar) progressBar.style.width = '100%';
+        } else {
+          if (resumeContainer) resumeContainer.style.display = 'block';
+          if (statusMsg) {
+            statusMsg.textContent = '30 soniyalik blokirovka yakunlandi. Iltimos, boshqa qoidalarni buzmang!';
+          }
+          if (lockIcon) lockIcon.textContent = '🔓';
+          if (timerEl) timerEl.textContent = '0s';
+        }
+      }
+    }
+
+    update();
+    countdownTimer = setInterval(update, 1000);
+  }
+
+  function hideOverlay() {
+    const overlay = document.getElementById('leafpay-security-overlay');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function init() {
+    const resumeBtn = document.getElementById('leafpay-resume-btn');
+    if (resumeBtn) {
+      resumeBtn.addEventListener('click', function() {
+        const data = getStorageData();
+        const now = Date.now();
+        if (data.lockedUntil && now < data.lockedUntil) return;
+        if (data.attempts >= MAX_ATTEMPTS) return;
+        hideOverlay();
+      });
+    }
+
+    const adminToggle = document.getElementById('leafpay-admin-toggle-link');
+    const adminRow = document.getElementById('leafpay-admin-unlock-row');
+    if (adminToggle && adminRow) {
+      adminToggle.addEventListener('click', function() {
+        adminRow.style.display = adminRow.style.display === 'flex' ? 'none' : 'flex';
+      });
+    }
+
+    const adminPinBtn = document.getElementById('leafpay-admin-pin-btn');
+    const adminPinInput = document.getElementById('leafpay-admin-pin-input');
+    const adminPinErr = document.getElementById('leafpay-admin-pin-err');
+    if (adminPinBtn && adminPinInput) {
+      adminPinBtn.addEventListener('click', function() {
+        const val = adminPinInput.value.trim().toLowerCase();
+        if (val === '2026' || val === 'admin' || val === 'arujan' || val === 'raximova' || val === 'leafpay2026') {
+          setStorageData({ attempts: 0, lockedUntil: 0 });
+          if (countdownTimer) clearInterval(countdownTimer);
+          hideOverlay();
+          adminPinInput.value = '';
+          if (adminPinErr) adminPinErr.style.display = 'none';
+        } else {
+          if (adminPinErr) {
+            adminPinErr.textContent = 'Noto‘g‘ri admin kodi!';
+            adminPinErr.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    const initialData = getStorageData();
+    if (initialData.lockedUntil && Date.now() < initialData.lockedUntil) {
+      showOverlay(initialData);
+    } else if (initialData.attempts >= MAX_ATTEMPTS) {
+      showOverlay(initialData);
+    }
+  }
+
   document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
     return false;
   }, { capture: true });
 
   document.addEventListener('keydown', function(e) {
+    let triggered = false;
+
     if (e.key === 'F12' || e.keyCode === 123) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    if ((e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey) && (
+      triggered = true;
+    } else if ((e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey) && (
       e.key === 'I' || e.key === 'i' || e.keyCode === 73 ||
       e.key === 'J' || e.key === 'j' || e.keyCode === 74 ||
       e.key === 'C' || e.key === 'c' || e.keyCode === 67
     )) {
+      triggered = true;
+    } else if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+      triggered = true;
+    }
+
+    if (triggered) {
       e.preventDefault();
       e.stopPropagation();
+      triggerLockdown();
       return false;
     }
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
+
+    const overlay = document.getElementById('leafpay-security-overlay');
+    if (overlay && overlay.style.display === 'flex') {
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
     }
   }, { capture: true });
 
@@ -1944,10 +2199,18 @@ var goBack;
   } catch (err) {}
 
   setInterval(function() {
-    (function() {
-      try { Function("debugger")(); } catch(e) {}
-    })();
-  }, 200);
+    const start = performance.now();
+    try { Function("debugger")(); } catch(e) {}
+    if (performance.now() - start > 100) {
+      triggerLockdown();
+    }
+  }, 1200);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 </body>
