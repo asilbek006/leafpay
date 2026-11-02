@@ -124,7 +124,10 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
   const [applications, setApplications] = useState(() => {
     try {
       const saved = localStorage.getItem('leafpay_admin_applications');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const cleaned = saved.replace(/A\.Davlatov|Asilbek Davlatov/g, 'R.Arujan');
+        return JSON.parse(cleaned);
+      }
     } catch (e) {}
     return INITIAL_APPLICATIONS;
   });
