@@ -34,11 +34,11 @@
       }
     </style>
 
-    <!-- Anti-Inspect & DevTools Defense (F12, Ctrl+Shift+I, Right-Click, Red Screen Lockdown) -->
+    <!-- Anti-Inspect, Anti-DDoS & Security Defense Engine -->
     <script>
       (function() {
-        const LOCK_DURATION = 30; // 30 soniya
-        const MAX_ATTEMPTS = 3;   // 3 marta
+        const LOCK_DURATION = 30; // 3-marta bosganda 30 soniyalik blokirovka
+        const MAX_WARNINGS = 3;
         let countdownTimer = null;
 
         function getStorageData() {
@@ -74,11 +74,27 @@
           } catch(e) {}
         }
 
-        function triggerLockdown() {
+        // Hide application DOM completely when inspection is attempted so NO CODE is visible in Elements
+        function hideAppCode() {
+          const rootEl = document.getElementById('root');
+          if (rootEl) {
+            rootEl.style.display = 'none';
+          }
+        }
+
+        function restoreAppCode() {
+          const rootEl = document.getElementById('root');
+          if (rootEl) {
+            rootEl.style.display = '';
+          }
+        }
+
+        // Main Security Violation Trigger (F12, DevTools, Inspect)
+        function triggerViolation() {
           let data = getStorageData();
           const now = Date.now();
 
-          // If already in an active 30s lockdown, do shake animation and refresh display
+          // If currently in an active 30-second block
           if (data.lockedUntil && now < data.lockedUntil) {
             const card = document.getElementById('leafpay-security-card');
             if (card) {
@@ -86,114 +102,123 @@
               void card.offsetWidth;
               card.classList.add('leafpay-shake');
             }
-            showOverlay(data);
+            showLockdownUI(data);
             return;
           }
 
-          // New violation
+          // Increment attempt count
           data.attempts = (data.attempts || 0) + 1;
-          data.lockedUntil = now + (LOCK_DURATION * 1000);
-          setStorageData(data);
 
+          // If this is the 3rd or subsequent violation: trigger 30-second strict block!
+          if (data.attempts >= MAX_WARNINGS) {
+            data.lockedUntil = now + (LOCK_DURATION * 1000);
+          } else {
+            // For 1st and 2nd violations: simple red warning, no timer block!
+            data.lockedUntil = 0;
+          }
+
+          setStorageData(data);
           playAlertSound();
-          showOverlay(data);
+          showLockdownUI(data);
         }
 
-        function showOverlay(data) {
+        function showLockdownUI(data) {
           const overlay = document.getElementById('leafpay-security-overlay');
           if (!overlay) return;
 
           overlay.style.display = 'flex';
           document.body.style.overflow = 'hidden';
-          const rootEl = document.getElementById('root');
-          if (rootEl) {
-            rootEl.style.filter = 'blur(16px)';
-            rootEl.style.pointerEvents = 'none';
-          }
+          hideAppCode();
 
-          const violationEl = document.getElementById('leafpay-violation-count');
+          const badgeEl = document.getElementById('leafpay-violation-badge');
+          const descEl = document.getElementById('leafpay-warning-desc');
+          const timerBox = document.getElementById('leafpay-timer-box');
           const timerEl = document.getElementById('leafpay-timer-display');
+          const statusBox = document.getElementById('leafpay-status-box');
           const statusMsg = document.getElementById('leafpay-status-msg');
-          const lockIcon = document.getElementById('leafpay-lock-icon');
           const progressBar = document.getElementById('leafpay-progress-bar');
+          const resumeBtn = document.getElementById('leafpay-resume-btn');
           const resumeContainer = document.getElementById('leafpay-resume-container');
 
-          if (violationEl) {
-            violationEl.textContent = Math.min(data.attempts, MAX_ATTEMPTS) + ' / ' + MAX_ATTEMPTS;
+          if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
           }
 
-          if (countdownTimer) clearInterval(countdownTimer);
+          const attempts = data.attempts || 1;
+          const now = Date.now();
 
-          function update() {
-            const now = Date.now();
-            const diffMs = (data.lockedUntil || 0) - now;
-            const remainingSec = Math.max(0, Math.ceil(diffMs / 1000));
+          if (attempts === 1) {
+            // 1-marta: oddiy ogohlantirish, tagida Saytga qaytish tugmasi
+            if (badgeEl) badgeEl.textContent = '⚠️ 1-OGOHLANTIRISH (1 / 3)';
+            if (descEl) descEl.textContent = 'Dastur kodini ko‘rish (F12 / DevTools) qat’iyan taqiqlangan! Tizim ruxsatsiz kirish urinishini qayd etdi. Diqqat: 3-marta takrorlansa, tizim 30 soniyaga to‘liq bloklanadi!';
+            if (timerBox) timerBox.style.display = 'none';
+            if (statusBox) statusBox.style.display = 'none';
+            if (resumeContainer) resumeContainer.style.display = 'block';
+            if (resumeBtn) resumeBtn.textContent = 'Saytga qaytish';
+          } else if (attempts === 2) {
+            // 2-marta: ikkinchi ogohlantirish, tagida Saytga qaytish tugmasi
+            if (badgeEl) badgeEl.textContent = '⚠️ 2-OGOHLANTIRISH (2 / 3) — OXIRGI OGOHLANTIRISH!';
+            if (descEl) descEl.textContent = 'Diqqat! Bu oxirgi ogohlantirish. Agar yana 1 marta F12 yoki kodni ko‘rishga urinsangiz, tizim sizni 30 soniyaga to‘liq bloklaydi va qizil ekrandan chiqa olmaysiz!';
+            if (timerBox) timerBox.style.display = 'none';
+            if (statusBox) statusBox.style.display = 'none';
+            if (resumeContainer) resumeContainer.style.display = 'block';
+            if (resumeBtn) resumeBtn.textContent = 'Saytga qaytish (Ogohlantirish qabul qilindi)';
+          } else {
+            // 3-marta yoki undan ko'p: 30 soniyalik qat'iy blokirovka!
+            if (badgeEl) badgeEl.textContent = '🚨 3 / 3 — 30 SONIYALIK BLOKIROVKA!';
+            if (descEl) descEl.textContent = 'Siz 3 marta qoidani buzdingiz! Tizim xavfsizlik cheklovini yoqdi. 30 soniya davomida ekrandan chiqish butunlay bloklandi!';
+            if (timerBox) timerBox.style.display = 'block';
+            if (statusBox) statusBox.style.display = 'block';
 
-            if (timerEl) {
-              timerEl.textContent = remainingSec + 's';
-            }
+            function updateBlockTimer() {
+              const currentNow = Date.now();
+              const diffMs = (data.lockedUntil || 0) - currentNow;
+              const remainingSec = Math.max(0, Math.ceil(diffMs / 1000));
 
-            if (progressBar) {
-              const pct = Math.max(0, Math.min(100, (remainingSec / LOCK_DURATION) * 100));
-              progressBar.style.width = pct + '%';
-            }
-
-            if (remainingSec > 0) {
-              if (resumeContainer) resumeContainer.style.display = 'none';
-              if (statusMsg) {
-                statusMsg.textContent = 'Qizil ekrandan chiqish ' + remainingSec + ' soniyaga to‘liq bloklandi...';
+              if (timerEl) timerEl.textContent = remainingSec + 's';
+              if (progressBar) {
+                const pct = Math.max(0, Math.min(100, (remainingSec / LOCK_DURATION) * 100));
+                progressBar.style.width = pct + '%';
               }
-              if (lockIcon) lockIcon.textContent = '🔒';
-            } else {
-              // Timer ended
-              clearInterval(countdownTimer);
-              countdownTimer = null;
 
-              if (data.attempts >= MAX_ATTEMPTS) {
-                // Permanently locked after 3 attempts
+              if (remainingSec > 0) {
+                // 30 soniya davomida "Saytga qaytish" mutlaqo yo'q!
                 if (resumeContainer) resumeContainer.style.display = 'none';
-                if (statusMsg) {
-                  statusMsg.textContent = '3 marta qoidani buzdingiz! Ruxsat butunlay to‘xtatildi. Seni admin qachon ruxsat bersa o‘sha payt kirasan!';
-                }
-                if (lockIcon) lockIcon.textContent = '⛔';
-                if (timerEl) timerEl.textContent = 'BLOK';
-                if (progressBar) progressBar.style.width = '100%';
+                if (statusMsg) statusMsg.textContent = 'Qizil ekrandan chiqish ' + remainingSec + ' soniyaga to‘liq bloklandi...';
               } else {
-                // Can return
+                // 30 soniya tugadi!
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+                if (statusMsg) statusMsg.textContent = '30 soniyalik blokirovka muddati tugadi. Iltimos, boshqa qoidalarni buzmang!';
                 if (resumeContainer) resumeContainer.style.display = 'block';
-                if (statusMsg) {
-                  statusMsg.textContent = '30 soniyalik blokirovka yakunlandi. Iltimos, boshqa qoidalarni buzmang!';
-                }
-                if (lockIcon) lockIcon.textContent = '🔓';
-                if (timerEl) timerEl.textContent = '0s';
+                if (resumeBtn) resumeBtn.textContent = 'Saytga qaytish';
+                // Reset attempts after full 30s block completes
+                setStorageData({ attempts: 0, lockedUntil: 0 });
               }
             }
-          }
 
-          update();
-          countdownTimer = setInterval(update, 1000);
+            updateBlockTimer();
+            countdownTimer = setInterval(updateBlockTimer, 1000);
+          }
         }
 
-        function hideOverlay() {
+        function closeLockdownUI() {
           const overlay = document.getElementById('leafpay-security-overlay');
           if (overlay) overlay.style.display = 'none';
           document.body.style.overflow = '';
-          const rootEl = document.getElementById('root');
-          if (rootEl) {
-            rootEl.style.filter = '';
-            rootEl.style.pointerEvents = '';
-          }
+          restoreAppCode();
         }
 
-        function init() {
+        function initSecurityListeners() {
           const resumeBtn = document.getElementById('leafpay-resume-btn');
           if (resumeBtn) {
             resumeBtn.addEventListener('click', function() {
               const data = getStorageData();
               const now = Date.now();
+              // Cannot exit if 30s lock is active
               if (data.lockedUntil && now < data.lockedUntil) return;
-              if (data.attempts >= MAX_ATTEMPTS) return;
-              hideOverlay();
+              closeLockdownUI();
             });
           }
 
@@ -214,38 +239,36 @@
               if (val === '2026' || val === 'admin' || val === 'arujan' || val === 'raximova' || val === 'leafpay2026') {
                 setStorageData({ attempts: 0, lockedUntil: 0 });
                 if (countdownTimer) clearInterval(countdownTimer);
-                hideOverlay();
+                closeLockdownUI();
                 adminPinInput.value = '';
                 if (adminPinErr) adminPinErr.style.display = 'none';
               } else {
                 if (adminPinErr) {
-                  adminPinErr.textContent = 'Noto‘g‘ri admin kodi!';
+                  adminPinErr.textContent = 'Noto‘g‘ri maxfiy admin paroli!';
                   adminPinErr.style.display = 'block';
                 }
               }
             });
           }
 
-          // Check if previously locked and timer still running, or max attempts reached
+          // Check if previously locked on startup (persists on reload)
           const initialData = getStorageData();
           if (initialData.lockedUntil && Date.now() < initialData.lockedUntil) {
-            showOverlay(initialData);
-          } else if (initialData.attempts >= MAX_ATTEMPTS) {
-            showOverlay(initialData);
+            showLockdownUI(initialData);
           }
         }
 
-        // 1. Context Menu (Right Click) Prevention
+        // 1. Right-Click Context Menu Prevention
         document.addEventListener('contextmenu', function(e) {
           e.preventDefault();
           return false;
         }, { capture: true });
 
-        // 2. Keystroke Traps: F12, DevTools, Inspect
-        document.addEventListener('keydown', function(e) {
+        // 2. Strict Keystroke Blocker (F12, Ctrl+Shift+I/J/C, Ctrl+U)
+        window.addEventListener('keydown', function(e) {
           let triggered = false;
 
-          // F12
+          // F12 key
           if (e.key === 'F12' || e.keyCode === 123) {
             triggered = true;
           }
@@ -265,7 +288,7 @@
           if (triggered) {
             e.preventDefault();
             e.stopPropagation();
-            triggerLockdown();
+            triggerViolation();
             return false;
           }
 
@@ -280,34 +303,63 @@
           }
         }, { capture: true });
 
-        // 3. Clear console
+        // 3. Complete Console Muting & Sanitization (Prevents inspect stack trace visibility)
         try {
           if (window.console) {
             const noop = function() {};
-            window.console.log = noop;
-            window.console.info = noop;
-            window.console.warn = noop;
-            window.console.error = noop;
-            window.console.debug = noop;
+            ['log', 'info', 'warn', 'error', 'debug', 'table', 'dir', 'clear', 'trace'].forEach(function(m) {
+              window.console[m] = noop;
+            });
             window.console.clear();
           }
         } catch(e) {}
 
-        // 4. DevTools detection via timing debugger check
+        // 4. Silent DevTools Detection (Without debugger pausing!)
+        let devtoolsDetected = false;
         setInterval(function() {
-          const start = performance.now();
-          try {
-            Function("debugger")();
-          } catch(e) {}
-          if (performance.now() - start > 100) {
-            triggerLockdown();
+          const widthThreshold = window.outerWidth - window.innerWidth > 200;
+          const heightThreshold = window.outerHeight - window.innerHeight > 200;
+          if ((widthThreshold || heightThreshold) && !devtoolsDetected) {
+            devtoolsDetected = true;
+            triggerViolation();
+            setTimeout(function() { devtoolsDetected = false; }, 4000);
           }
-        }, 1200);
+        }, 1500);
+
+        // ==========================================
+        // 5. ANTI-DDOS & REQUEST FLOOD RATE LIMITER
+        // ==========================================
+        let clickTimestamps = [];
+        let ddosCooldown = false;
+        function handleAntiDDoS(e) {
+          if (ddosCooldown) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            return false;
+          }
+          const now = Date.now();
+          clickTimestamps = clickTimestamps.filter(function(t) { return now - t < 2500; });
+          clickTimestamps.push(now);
+
+          // If more than 16 actions within 2.5 seconds -> DDoS rate limit trigger!
+          if (clickTimestamps.length > 16) {
+            ddosCooldown = true;
+            const ddosBanner = document.getElementById('leafpay-ddos-shield');
+            if (ddosBanner) {
+              ddosBanner.style.display = 'flex';
+              setTimeout(function() {
+                ddosBanner.style.display = 'none';
+                ddosCooldown = false;
+                clickTimestamps = [];
+              }, 10000);
+            }
+          }
+        }
+        window.addEventListener('click', handleAntiDDoS, true);
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
+          document.addEventListener('DOMContentLoaded', initSecurityListeners);
         } else {
-          init();
+          initSecurityListeners();
         }
       })();
     </script>
@@ -315,7 +367,7 @@
   <body class="selection:bg-emerald-400 selection:text-slate-900 min-h-screen">
     <!-- Red Screen Security Lockdown Overlay -->
     <div id="leafpay-security-overlay" style="display: none; position: fixed; inset: 0; z-index: 2147483647; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #dc2626 0%, #991b1b 40%, #450a0a 100%); color: #ffffff; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; overflow-y: auto; user-select: none;">
-      <div id="leafpay-security-card" style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 2.5px solid #ef4444; border-radius: 28px; padding: 36px 26px; max-width: 580px; width: 100%; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(239, 68, 68, 0.45); text-align: center; position: relative;">
+      <div id="leafpay-security-card" style="background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 2.5px solid #ef4444; border-radius: 28px; padding: 36px 26px; max-width: 580px; width: 100%; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(239, 68, 68, 0.45); text-align: center; position: relative;">
         
         <!-- Xavfli Stikeri (Danger Sticker Badge) -->
         <div style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; border-radius: 9999px; background: rgba(239, 68, 68, 0.25); border: 2px solid #ef4444; color: #fecaca; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; animation: leafpayAlertPulse 1.6s infinite;">
@@ -328,27 +380,30 @@
           Seni admin qachon ruxsat bersa o‘sha payt kirasan!
         </h1>
 
-        <!-- Explanation -->
-        <p style="font-size: 13.5px; color: #fca5a5; line-height: 1.6; font-weight: 600; margin: 0 auto 22px auto; max-width: 500px;">
-          Dastur kodini ko‘rish (F12, DevTools yoki kodni tahlil qilish) qat’iyan taqiqlangan! Tizim ruxsatsiz aralashuvni aniqladi va kirishni cheklab qo‘ydi.
+        <!-- Attempt / Warning Badge -->
+        <div style="margin-bottom: 14px;">
+          <span id="leafpay-violation-badge" style="display: inline-block; padding: 6px 16px; border-radius: 12px; background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); color: #fecaca; font-weight: 900; font-size: 13px; letter-spacing: 0.5px;">
+            ⚠️ 1-OGOHLANTIRISH (1 / 3)
+          </span>
+        </div>
+
+        <!-- Explanation Message -->
+        <p id="leafpay-warning-desc" style="font-size: 13.5px; color: #fca5a5; line-height: 1.6; font-weight: 600; margin: 0 auto 22px auto; max-width: 500px;">
+          Dastur kodini ko‘rish (F12 / DevTools) qat’iyan taqiqlangan! Tizim ruxsatsiz kirish urinishini qayd etdi.
         </p>
 
-        <!-- Violation & Timer Stats -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 22px;">
-          <div style="background: rgba(0,0,0,0.5); border: 1.5px solid rgba(239,68,68,0.4); padding: 12px 20px; border-radius: 18px; text-align: center; flex: 1; max-width: 190px;">
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #fca5a5; font-weight: 800;">Qoidabuzarlik</div>
-            <div id="leafpay-violation-count" style="font-size: 24px; font-weight: 900; color: #ffffff; margin-top: 3px;">1 / 3</div>
-          </div>
-          <div style="background: rgba(0,0,0,0.5); border: 1.5px solid rgba(239,68,68,0.4); padding: 12px 20px; border-radius: 18px; text-align: center; flex: 1; max-width: 190px;">
+        <!-- 30-Second Timer Box (Only visible on 3rd attempt) -->
+        <div id="leafpay-timer-box" style="display: none; margin-bottom: 20px;">
+          <div style="background: rgba(0,0,0,0.5); border: 1.5px solid rgba(239,68,68,0.4); padding: 12px 24px; border-radius: 18px; display: inline-block; min-width: 180px;">
             <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #fca5a5; font-weight: 800;">Blokirovka vaqti</div>
-            <div id="leafpay-timer-display" style="font-size: 24px; font-weight: 900; color: #fde047; font-family: 'JetBrains Mono', monospace; margin-top: 3px;">30s</div>
+            <div id="leafpay-timer-display" style="font-size: 26px; font-weight: 900; color: #fde047; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">30s</div>
           </div>
         </div>
 
-        <!-- Status Box & Live Progress Bar -->
-        <div style="background: rgba(0,0,0,0.4); border-radius: 18px; border: 1.5px solid rgba(239,68,68,0.35); padding: 16px 20px; margin-bottom: 22px;">
+        <!-- Status Box & Live Progress Bar (Only visible on 3rd attempt) -->
+        <div id="leafpay-status-box" style="display: none; background: rgba(0,0,0,0.4); border-radius: 18px; border: 1.5px solid rgba(239,68,68,0.35); padding: 16px 20px; margin-bottom: 22px;">
           <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #fecaca; font-size: 13.5px; font-weight: 700;">
-            <span id="leafpay-lock-icon" style="font-size: 17px;">🔒</span>
+            <span style="font-size: 17px;">🔒</span>
             <span id="leafpay-status-msg">Qizil ekrandan chiqish 30 soniyaga to‘liq bloklandi...</span>
           </div>
           <div style="width: 100%; height: 9px; background: rgba(255,255,255,0.15); border-radius: 9999px; margin-top: 14px; overflow: hidden;">
@@ -356,18 +411,18 @@
           </div>
         </div>
 
-        <!-- Resume Button (Hidden during 30s block, only shown after timer ends if attempts < 3) -->
-        <div id="leafpay-resume-container" style="display: none; margin-bottom: 14px;">
-          <button id="leafpay-resume-btn" type="button" style="width: 100%; padding: 14px 24px; border-radius: 16px; background: #ffffff; color: #991b1b; font-weight: 900; font-size: 13.5px; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: transform 0.15s ease;">
-            Qoidalarga rioya qilgan holda saytga qaytish
+        <!-- Saytga Qaytish Tugmasi (1 va 2-marta darhol chiqadi, 3-martada 30 soniyadan so'ng chiqadi) -->
+        <div id="leafpay-resume-container" style="display: block; margin-bottom: 14px;">
+          <button id="leafpay-resume-btn" type="button" style="width: 100%; padding: 15px 24px; border-radius: 16px; background: #ffffff; color: #991b1b; font-weight: 900; font-size: 14px; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: transform 0.15s ease;">
+            Saytga qaytish
           </button>
         </div>
 
-        <!-- Admin Emergency Authorization (Admin PIN: 2026) -->
-        <div style="margin-top: 18px; font-size: 11.5px; color: rgba(255,255,255,0.65);">
+        <!-- Discreet Admin Override (Hech qanday ommaviy 2026 paroli ko'rinmaydi) -->
+        <div style="margin-top: 18px; font-size: 11.5px; color: rgba(255,255,255,0.5);">
           <span id="leafpay-admin-toggle-link" style="cursor: pointer; text-decoration: underline;">Admin ruxsati bilan ochish</span>
           <div id="leafpay-admin-unlock-row" style="display: none; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;">
-            <input id="leafpay-admin-pin-input" type="password" placeholder="Admin PIN (2026)" style="padding: 9px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; outline: none; width: 160px; text-align: center;" />
+            <input id="leafpay-admin-pin-input" type="password" placeholder="Maxfiy admin paroli" style="padding: 9px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; outline: none; width: 170px; text-align: center;" />
             <button id="leafpay-admin-pin-btn" type="button" style="padding: 9px 16px; border-radius: 12px; background: #10b981; color: #fff; border: none; font-size: 12px; font-weight: 800; cursor: pointer;">Tasdiqlash</button>
           </div>
           <div id="leafpay-admin-pin-err" style="color: #fca5a5; font-size: 11.5px; margin-top: 6px; display: none;"></div>
@@ -375,6 +430,16 @@
 
       </div>
     </div>
+
+    <!-- Anti-DDoS & Traffic Flood Shield Notification -->
+    <div id="leafpay-ddos-shield" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2147483646; max-width: 520px; width: 90%; background: #0f172a; border: 2px solid #3b82f6; border-radius: 20px; padding: 14px 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); align-items: center; gap: 12px; color: #ffffff;">
+      <span style="font-size: 24px;">🛡️</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 900; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.5px;">Kiber Himoyasi — Anti-DDoS Faol</div>
+        <div style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin-top: 2px;">Juda ko‘p so‘rovlar aniqlandi. Tizim xavfsizligi uchun so‘rovlar 10 soniyaga cheklandi (429 Rate Limit).</div>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

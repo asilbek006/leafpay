@@ -42,8 +42,8 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
     }
   });
 
-  const [adminLogin, setAdminLogin] = useState('admin');
-  const [adminPassword, setAdminPassword] = useState('2026');
+  const [adminLogin, setAdminLogin] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -185,26 +185,9 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
           });
         } catch (err) {}
       } else {
-        setAuthError("Noto‘g‘ri login yoki parol! (Demo parol: 2026)");
+        setAuthError("Noto‘g‘ri login yoki maxfiy parol!");
       }
     }, 450);
-  };
-
-  const handleQuickDemoAdminAuth = () => {
-    setAdminLogin('admin');
-    setAdminPassword('2026');
-    setAuthError('');
-    setIsAdminAuth(true);
-    try {
-      localStorage.setItem('leafpay_admin_auth', 'true');
-    } catch (err) {}
-    try {
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
-    } catch (err) {}
   };
 
   const handleAdminLogout = () => {
@@ -441,7 +424,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
                   className={`w-full py-3 pl-10 pr-4 text-xs font-bold rounded-2xl border-2 outline-none transition ${
                     isDark ? 'bg-slate-900 border-slate-700 text-white focus:border-emerald-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-600'
                   }`}
-                  placeholder="admin"
+                  placeholder="Login kiriting"
                 />
                 <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
@@ -449,7 +432,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
 
             <div>
               <label className={`block text-[11px] font-black uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                Admin Paroli yoki PIN kod:
+                Maxfiy Kalit yoki Parol:
               </label>
               <div className="relative">
                 <input
@@ -459,7 +442,7 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
                   className={`w-full py-3 pl-10 pr-4 text-xs font-bold rounded-2xl border-2 outline-none transition font-mono ${
                     isDark ? 'bg-slate-900 border-slate-700 text-white focus:border-emerald-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-600'
                   }`}
-                  placeholder="Demo kod: 2026"
+                  placeholder="Parolni kiriting"
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
@@ -484,18 +467,9 @@ export default function MinistryDashboard({ t, theme, isMobile = false, user, on
             </button>
           </form>
 
-          {/* Quick Demo Admin Grant Button */}
+          {/* Security Note */}
           <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-center relative z-10">
-            <button
-              type="button"
-              onClick={handleQuickDemoAdminAuth}
-              className="w-full py-2.5 px-3 rounded-2xl text-[11px] font-bold border-2 border-emerald-400/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>⚡ Bir bosishda Davlat Inspektori ruxsatini yoqish</span>
-            </button>
-
-            <p className="text-[10px] text-slate-400 font-semibold mt-2">
+            <p className="text-[10px] text-slate-400 font-semibold">
               🔒 256-bit shifrlangan davlat kanali • Zero-Trust ruxsat tizimi
             </p>
           </div>
